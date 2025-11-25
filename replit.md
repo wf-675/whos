@@ -10,21 +10,25 @@ Preferred communication style: Simple, everyday language. Youth-oriented, casual
 
 ## Recent Changes (Latest Session)
 
-### New Features Implemented
+### Major Bug Fix
+- **Fixed Majority Voting System**: Voting now properly requires majority (>50%) of players to click "نبي نصوت" button before transitioning to voting phase. Previously, the voting would start as soon as the phase changed, but now it only starts when majority threshold is reached. Updated `server/routes.ts` to check `room.phase === 'voting'` before calling `startVotingPhase()`.
+
+### Features Implemented
 - **Majority Voting System**: Voting phase starts only when majority (>50%) of players click "نبي نصوت" button
 - **Header Navigation**: Added sticky header with round number display and "return to main menu" button on all game pages
 - **Improved Arabic Language**: Replaced "الغريب/الغريبة" with "الي برا السالفة" throughout UI for youth appeal
 - **Animations**: Added smooth transitions, scale transforms on hover/click, and pulse effects
-- **Points Display**: Player cards now show earned points in reveal phase
-- **Youth-Oriented Language**: Updated all text to use casual, playful Arabic tone with emoji accents
+- **Points Display**: Player cards now show earned points in reveal phase (10 points for correct vote, 15 for odd-one-out self-vote)
+- **Youth-Oriented Language**: Updated all text to use casual, playful Arabic tone
 - **Self-Voting Support**: Players can vote for themselves including the odd-one-out player
-- **Visual Feedback**: Progress bar showing voting readiness percentage, bounce animations on badges
+- **Visual Feedback**: Progress bar showing voting readiness percentage, preventing same player from being odd-one-out twice in a row
 
 ### Technical Implementation
-- Backend: `moveToVotingPhase()` checks majority threshold before transitioning
-- Frontend: Local state tracks `votesReady` count with visual progress indicator
-- Styling: Added CSS animations in `index.css` for subtle bounce and pulse effects
-- Language: Updated all game text to use "الي برا السالفة" and "الي بالسالفة" terminology
+- Backend: `moveToVotingPhase()` in storage.ts checks majority threshold (≥50%) before transitioning. Phase only changes to 'voting' when threshold is met.
+- Routes: Updated `start_voting` handler to verify `room.phase === 'voting'` before starting the voting phase timer
+- Frontend: Local state tracks `votesReady` count with visual progress indicator showing percentage
+- Styling: Added CSS animations in `index.css` for bounce and pulse effects
+- Language: All game text uses "الي برا السالفة" and "الي بالسالفة" terminology throughout
 
 ## System Architecture
 

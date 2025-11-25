@@ -10,7 +10,8 @@ export interface IStorage {
   updatePlayerConnection(roomCode: string, playerId: string, isConnected: boolean): void;
   startGame(roomCode: string): Room | undefined;
   addMessage(roomCode: string, playerId: string, playerName: string, text: string): Room | undefined;
-  submitVote(roomCode: string, playerId: string, targetPlayerId: string): Room | undefined;
+  moveToVotingPhase(roomCode: string): Room | undefined;
+  submitVote(roomCode: string, playerId: string, targetPlayerId: string): { room: Room; allVoted: boolean } | undefined;
   startNextRound(roomCode: string): Room | undefined;
 }
 
@@ -57,6 +58,19 @@ export class MemStorage implements IStorage {
     const pack = this.wordPacks[packIndex];
     const pairIndex = Math.floor(Math.random() * pack.length);
     return pack[pairIndex];
+  }
+
+  private getRandomOddOneOut(roomCode: string, players: Player[]): string {
+    let oddIndex: number;
+    const room = this.rooms.get(roomCode);
+    const lastOddId = room?.oddOneOutId;
+    
+    // Prevent same player from being odd one out twice in a row
+    do {
+      oddIndex = Math.floor(Math.random() * players.length);
+    } while (players[oddIndex].id === lastOddId && players.length > 1);
+
+    return players[oddIndex].id;
   }
 
   createRoom(hostId: string, hostName: string): Room {
@@ -126,13 +140,11 @@ export class MemStorage implements IStorage {
     const wordPair = this.getRandomWordPair();
     room.currentWord = wordPair;
 
-    // Select random odd one out
-    const oddIndex = Math.floor(Math.random() * room.players.length);
-    room.oddOneOutId = room.players[oddIndex].id;
+    // Select random odd one out (prevent repeats)
+    room.oddOneOutId = this.getRandomOddOneOut(roomCode, room.players);
 
-    // Mark players
-    room.players.forEach((player, index) => {
-      player.isOddOneOut = index === oddIndex;
+    // Reset players (don't mark isOddOneOut - hide from players)
+    room.players.forEach((player) => {
       player.votedFor = undefined;
     });
 
@@ -140,6 +152,17 @@ export class MemStorage implements IStorage {
     room.phase = 'discussion';
     room.timerEndsAt = Date.now() + 120000; // 2 minutes
     room.messages = [];
+
+    return room;
+  }
+
+  moveToVotingPhase(roomCode: string): Room | undefined {
+    const room = this.rooms.get(roomCode);
+    if (!room || room.phase !== 'discussion') return undefined;
+
+    room.phase = 'voting';
+    room.timerEndsAt = Date.now() + 60000; // 1 minute for voting
+    room.players.forEach(p => p.votedFor = undefined); // Reset votes
 
     return room;
   }
@@ -188,13 +211,11 @@ export class MemStorage implements IStorage {
     const wordPair = this.getRandomWordPair();
     room.currentWord = wordPair;
 
-    // Select new random odd one out
-    const oddIndex = Math.floor(Math.random() * room.players.length);
-    room.oddOneOutId = room.players[oddIndex].id;
+    // Select new random odd one out (prevent repeats)
+    room.oddOneOutId = this.getRandomOddOneOut(roomCode, room.players);
 
-    // Reset players
-    room.players.forEach((player, index) => {
-      player.isOddOneOut = index === oddIndex;
+    // Reset players (don't mark isOddOneOut)
+    room.players.forEach((player) => {
       player.votedFor = undefined;
     });
 

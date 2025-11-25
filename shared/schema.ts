@@ -92,6 +92,7 @@ export type WSMessage =
   | { type: 'join_room'; data: z.infer<typeof joinRoomSchema> }
   | { type: 'start_game' }
   | { type: 'send_message'; data: z.infer<typeof sendMessageSchema> }
+  | { type: 'start_voting' }
   | { type: 'vote'; data: z.infer<typeof voteSchema> }
   | { type: 'next_round' };
 

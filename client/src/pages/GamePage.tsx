@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlayerCard } from "@/components/PlayerCard";
 import { Timer } from "@/components/Timer";
-import { ChatBox } from "@/components/ChatBox";
 import { Eye, EyeOff, Trophy, RefreshCw } from "lucide-react";
 import type { Room } from "@shared/schema";
 import type { WSMessage } from "@shared/schema";
@@ -22,7 +21,6 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   
   const currentPlayer = room.players.find(p => p.id === playerId);
   const hasVoted = currentPlayer?.votedFor !== undefined;
-  const isHost = currentPlayer?.isHost || false;
 
   const handleVote = () => {
     if (selectedPlayerId && selectedPlayerId !== playerId) {
@@ -33,28 +31,36 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
     }
   };
 
-  const handleSendMessage = (text: string) => {
+  const handleStartVoting = () => {
     onSendMessage({
-      type: 'send_message',
-      data: { text }
+      type: 'start_voting'
     });
   };
+
 
   const handleNextRound = () => {
     onSendMessage({ type: 'next_round' });
   };
 
-  const getVotedPlayerName = (votedForId?: string) => {
-    if (!votedForId) return undefined;
-    return room.players.find(p => p.id === votedForId)?.name;
-  };
 
   const renderDiscussionPhase = () => (
     <>
-      <div className="mb-8">
-        {room.timerEndsAt && (
-          <Timer endsAt={room.timerEndsAt} />
-        )}
+      <div className="text-center mb-6">
+        <h2 className="text-3xl font-bold mb-2">النقاش</h2>
+        <p className="text-muted-foreground">
+          تحدثوا واكتشفوا من هو الغريب
+        </p>
+      </div>
+
+      <div className="max-w-md mx-auto mb-8 text-center">
+        <Button
+          size="lg"
+          onClick={handleStartVoting}
+          className="min-w-[200px]"
+          data-testid="button-start-voting"
+        >
+          نبي نصوت
+        </Button>
       </div>
 
       <Card className="max-w-md mx-auto mb-8">
@@ -86,9 +92,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
                 </p>
               )}
               <p className="text-sm text-muted-foreground text-center mt-4">
-                {currentPlayer?.isOddOneOut 
-                  ? "أنت الغريب! كلمتك مختلفة عن الآخرين" 
-                  : "هذه كلمتك - اكتشف من هو الغريب"}
+                اكتشف من هو الغريب
               </p>
             </>
           ) : (
@@ -99,22 +103,12 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         </CardContent>
       </Card>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          <h2 className="text-2xl font-semibold mb-4">اللاعبون</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {room.players.map((player) => (
-              <PlayerCard key={player.id} player={player} />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <ChatBox
-            messages={room.messages}
-            currentPlayerId={playerId}
-            onSendMessage={handleSendMessage}
-          />
+      <div>
+        <h2 className="text-2xl font-semibold mb-4">اللاعبون</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {room.players.map((player) => (
+            <PlayerCard key={player.id} player={player} />
+          ))}
         </div>
       </div>
     </>
@@ -222,31 +216,22 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
                 key={player.id}
                 player={player}
                 showVote
-                votedFor={getVotedPlayerName(player.votedFor)}
               />
             ))}
           </div>
         </div>
 
-        {isHost && (
-          <div className="text-center">
-            <Button
-              size="lg"
-              onClick={handleNextRound}
-              className="min-w-[200px]"
-              data-testid="button-next-round"
-            >
-              <RefreshCw className="w-5 h-5 ml-2" />
-              جولة جديدة
-            </Button>
-          </div>
-        )}
-
-        {!isHost && (
-          <p className="text-center text-muted-foreground">
-            في انتظار أن يبدأ المضيف جولة جديدة...
-          </p>
-        )}
+        <div className="text-center">
+          <Button
+            size="lg"
+            onClick={handleNextRound}
+            className="min-w-[200px]"
+            data-testid="button-next-round"
+          >
+            <RefreshCw className="w-5 h-5 ml-2" />
+            جولة جديدة
+          </Button>
+        </div>
       </>
     );
   };

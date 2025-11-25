@@ -26,8 +26,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     clients.forEach((client) => {
       if (client.roomCode === roomCode && client.ws.readyState === WebSocket.OPEN) {
-        const player = room.players.find(p => p.id === client.playerId);
-        const playerWord = player?.isOddOneOut 
+        const isOddOneOut = room.oddOneOutId === client.playerId;
+        const playerWord = isOddOneOut 
           ? room.currentWord?.odd 
           : room.currentWord?.normal;
 
@@ -59,12 +59,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     roomTimers.set(roomCode, timer);
   };
 
-  const moveToVotingPhase = (roomCode: string) => {
+  const startVotingPhase = (roomCode: string) => {
     const room = storage.getRoom(roomCode);
-    if (!room || room.phase !== 'discussion') return;
+    if (!room) return;
 
     room.phase = 'voting';
     room.timerEndsAt = Date.now() + 60000; // 1 minute for voting
+
+    broadcastRoomState(roomCode);
 
     // Start voting timer
     startPhaseTimer(roomCode, 60000, () => {
@@ -168,12 +170,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             if (room) {
               broadcastRoomState(clientData.roomCode);
-              
-              // Start discussion timer (2 minutes)
-              startPhaseTimer(clientData.roomCode, 120000, () => {
-                moveToVotingPhase(clientData.roomCode!);
-                broadcastRoomState(clientData.roomCode!);
-              });
+            }
+            break;
+          }
+
+          case 'start_voting': {
+            if (!clientData.roomCode) break;
+
+            const room = storage.moveToVotingPhase(clientData.roomCode);
+            if (room) {
+              const timer = roomTimers.get(clientData.roomCode);
+              if (timer) {
+                clearTimeout(timer);
+                roomTimers.delete(clientData.roomCode);
+              }
+              startVotingPhase(clientData.roomCode);
             }
             break;
           }
@@ -228,12 +239,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             if (room) {
               broadcastRoomState(clientData.roomCode);
-              
-              // Start discussion timer
-              startPhaseTimer(clientData.roomCode, 120000, () => {
-                moveToVotingPhase(clientData.roomCode!);
-                broadcastRoomState(clientData.roomCode!);
-              });
             }
             break;
           }

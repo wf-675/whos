@@ -169,6 +169,8 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
 
   const renderRevealPhase = () => {
     const oddPlayer = room.players.find(p => p.id === room.oddOneOutId);
+    const normalPlayers = room.players.filter(p => p.id !== room.oddOneOutId);
+    
     const voteCounts = room.players.reduce((acc, player) => {
       if (player.votedFor) {
         acc[player.votedFor] = (acc[player.votedFor] || 0) + 1;
@@ -191,7 +193,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
           <Card className="max-w-md mx-auto mb-6">
             <CardContent className="pt-6">
               <p className="text-lg mb-2">الغريب كان...</p>
-              <p className="text-5xl font-bold text-primary mb-4" data-testid="text-odd-player">
+              <p className="text-5xl font-bold text-destructive mb-4" data-testid="text-odd-player">
                 {oddPlayer?.name}
               </p>
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -206,6 +208,36 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="max-w-4xl mx-auto mb-8">
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-xl font-semibold mb-4 text-center text-destructive">برا السالفة</h3>
+              <div className="flex justify-center">
+                {oddPlayer && (
+                  <PlayerCard
+                    key={oddPlayer.id}
+                    player={oddPlayer}
+                    playerRole="odd"
+                  />
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold mb-4 text-center text-primary">بالسالفة</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {normalPlayers.map((player) => (
+                  <PlayerCard
+                    key={player.id}
+                    player={player}
+                    playerRole="normal"
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="max-w-2xl mx-auto mb-8">

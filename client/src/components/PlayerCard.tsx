@@ -10,9 +10,10 @@ interface PlayerCardProps {
   onClick?: () => void;
   showVote?: boolean;
   votedFor?: string;
+  playerRole?: 'odd' | 'normal';
 }
 
-export function PlayerCard({ player, isSelected, onClick, showVote, votedFor }: PlayerCardProps) {
+export function PlayerCard({ player, isSelected, onClick, showVote, votedFor, playerRole }: PlayerCardProps) {
   const initials = player.name.slice(0, 2).toUpperCase();
   
   return (
@@ -50,6 +51,16 @@ export function PlayerCard({ player, isSelected, onClick, showVote, votedFor }: 
           <p className="font-medium text-sm truncate" data-testid={`text-name-${player.id}`}>
             {player.name}
           </p>
+          
+          {playerRole && (
+            <Badge 
+              variant={playerRole === 'odd' ? 'destructive' : 'secondary'} 
+              className="mt-2 text-xs"
+              data-testid={`badge-role-${player.id}`}
+            >
+              {playerRole === 'odd' ? 'برا السالفة' : 'بالسالفة'}
+            </Badge>
+          )}
           
           {showVote && votedFor && (
             <Badge variant="secondary" className="mt-2 text-xs">

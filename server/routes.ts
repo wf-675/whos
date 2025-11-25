@@ -175,13 +175,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (!clientData.roomCode) break;
 
             const room = storage.moveToVotingPhase(clientData.roomCode);
-            if (room) {
+            if (room && room.phase === 'voting') {
               const timer = roomTimers.get(clientData.roomCode);
               if (timer) {
                 clearTimeout(timer);
                 roomTimers.delete(clientData.roomCode);
               }
               startVotingPhase(clientData.roomCode);
+            } else {
+              broadcastRoomState(clientData.roomCode);
             }
             break;
           }

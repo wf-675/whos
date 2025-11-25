@@ -2,11 +2,29 @@
 
 ## Overview
 
-A real-time multiplayer Arabic party game where players try to identify the "odd one out" among them. Players receive either a normal word or an odd word, and through discussion and voting, they must discover who has the different word. The application features a modern RTL-first Arabic interface with real-time WebSocket communication.
+A real-time multiplayer Arabic party game where players try to identify the "odd one out" among them. Players receive either a normal word or an odd word, and through discussion and voting, they must discover who has the different word. The application features a modern RTL-first Arabic interface with real-time WebSocket communication, youth-oriented casual Arabic language, green color scheme, smooth animations, and a majority-based voting system.
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+Preferred communication style: Simple, everyday language. Youth-oriented, casual Arabic with "الي برا السالفة" and "الي بالسالفة" terminology.
+
+## Recent Changes (Latest Session)
+
+### New Features Implemented
+- **Majority Voting System**: Voting phase starts only when majority (>50%) of players click "نبي نصوت" button
+- **Header Navigation**: Added sticky header with round number display and "return to main menu" button on all game pages
+- **Improved Arabic Language**: Replaced "الغريب/الغريبة" with "الي برا السالفة" throughout UI for youth appeal
+- **Animations**: Added smooth transitions, scale transforms on hover/click, and pulse effects
+- **Points Display**: Player cards now show earned points in reveal phase
+- **Youth-Oriented Language**: Updated all text to use casual, playful Arabic tone with emoji accents
+- **Self-Voting Support**: Players can vote for themselves including the odd-one-out player
+- **Visual Feedback**: Progress bar showing voting readiness percentage, bounce animations on badges
+
+### Technical Implementation
+- Backend: `moveToVotingPhase()` checks majority threshold before transitioning
+- Frontend: Local state tracks `votesReady` count with visual progress indicator
+- Styling: Added CSS animations in `index.css` for subtle bounce and pulse effects
+- Language: Updated all game text to use "الي برا السالفة" and "الي بالسالفة" terminology
 
 ## System Architecture
 

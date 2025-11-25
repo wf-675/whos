@@ -61,15 +61,7 @@ export class MemStorage implements IStorage {
   }
 
   private getRandomOddOneOut(roomCode: string, players: Player[]): string {
-    let oddIndex: number;
-    const room = this.rooms.get(roomCode);
-    const lastOddId = room?.oddOneOutId;
-    
-    // Prevent same player from being odd one out twice in a row
-    do {
-      oddIndex = Math.floor(Math.random() * players.length);
-    } while (players[oddIndex].id === lastOddId && players.length > 1);
-
+    const oddIndex = Math.floor(Math.random() * players.length);
     return players[oddIndex].id;
   }
 

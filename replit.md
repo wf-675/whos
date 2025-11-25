@@ -21,7 +21,8 @@ Preferred communication style: Simple, everyday language. Youth-oriented, casual
 - **Points Display**: Player cards now show earned points in reveal phase (10 points for correct vote, 15 for odd-one-out self-vote)
 - **Youth-Oriented Language**: Updated all text to use casual, playful Arabic tone
 - **Self-Voting Support**: Players can vote for themselves including the odd-one-out player
-- **Visual Feedback**: Progress bar showing voting readiness percentage, preventing same player from being odd-one-out twice in a row
+- **Visual Feedback**: Progress bar showing voting readiness percentage
+- **100% Random Selection**: Odd-one-out selection is completely random each round - no prevention of repeats, truly random every time
 
 ### Technical Implementation
 - Backend: `moveToVotingPhase()` in storage.ts checks majority threshold (≥50%) before transitioning. Phase only changes to 'voting' when threshold is met.

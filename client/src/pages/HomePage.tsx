@@ -43,9 +43,9 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">مين برا السالفة؟</h1>
-          <p className="text-muted-foreground">
-            لعبة جماعية ممتعة - اكتشف الغريب بينكم!
+          <h1 className="text-5xl font-bold mb-2">🎮 مين برا السالفة؟</h1>
+          <p className="text-lg text-muted-foreground">
+            لعبة جماعية ممتعة وفيها ضحك - اكتشفوا من الي برا السالفة! 🔥
           </p>
         </div>
 
@@ -64,9 +64,9 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
           <TabsContent value="create">
             <Card>
               <CardHeader>
-                <CardTitle>إنشاء غرفة جديدة</CardTitle>
+                <CardTitle>🎯 إنشاء غرفة</CardTitle>
                 <CardDescription>
-                  أنشئ غرفة جديدة وشارك الكود مع أصدقائك
+                  روح أول واعرض الكود لأصدقائك
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -99,9 +99,9 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
           <TabsContent value="join">
             <Card>
               <CardHeader>
-                <CardTitle>الانضمام لغرفة</CardTitle>
+                <CardTitle>📥 انضم لغرفة</CardTitle>
                 <CardDescription>
-                  أدخل الكود المكون من 6 أحرف للانضمام
+                  اطلب الكود من الي بدأ غرفة وادخله هنا
                 </CardDescription>
               </CardHeader>
               <CardContent>

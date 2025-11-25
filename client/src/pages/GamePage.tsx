@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlayerCard } from "@/components/PlayerCard";
 import { Timer } from "@/components/Timer";
-import { Eye, EyeOff, Trophy, RefreshCw, Send, Vote, ChevronRight } from "lucide-react";
+import { Eye, EyeOff, Trophy, RefreshCw, Send, Vote, ChevronRight, Home } from "lucide-react";
+import { Link } from "wouter";
 import type { Room } from "@shared/schema";
 import type { WSMessage } from "@shared/schema";
 
@@ -18,9 +19,12 @@ interface GamePageProps {
 export default function GamePage({ room, playerId, playerWord, onSendMessage }: GamePageProps) {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [showWord, setShowWord] = useState(false);
+  const [votesReady, setVotesReady] = useState(0);
   
   const currentPlayer = room.players.find(p => p.id === playerId);
   const hasVoted = currentPlayer?.votedFor !== undefined;
+  const majorityNeeded = Math.ceil(room.players.length / 2);
+  const votesReadyPercentage = Math.round((votesReady / majorityNeeded) * 100);
 
   const handleVote = () => {
     if (selectedPlayerId) {
@@ -32,6 +36,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   };
 
   const handleStartVoting = () => {
+    setVotesReady(votesReady + 1);
     onSendMessage({
       type: 'start_voting'
     });
@@ -46,9 +51,9 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   const renderDiscussionPhase = () => (
     <>
       <div className="text-center mb-6">
-        <h2 className="text-3xl font-bold mb-2">النقاش</h2>
+        <h2 className="text-3xl font-bold mb-2">النقاش والحوار 💬</h2>
         <p className="text-muted-foreground">
-          تحدثوا واكتشفوا من هو الغريب
+          تحدثوا وافتكروا من الي برا السالفة
         </p>
       </div>
 
@@ -56,7 +61,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         <Button
           size="lg"
           onClick={handleStartVoting}
-          className="min-w-[200px]"
+          className="min-w-[200px] transition-transform hover:scale-105 active:scale-95"
           data-testid="button-start-voting"
         >
           <Vote className="w-5 h-5 ml-2" />
@@ -64,8 +69,27 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         </Button>
       </div>
 
+      <div className="max-w-md mx-auto mb-6 text-center">
+        <div className="bg-card rounded-lg p-4 border border-border">
+          <p className="text-sm font-semibold mb-2">
+            {votesReady} من {majorityNeeded} متأهبين للتصويت
+          </p>
+          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+            <div 
+              className="bg-primary h-full transition-all duration-300"
+              style={{ width: `${votesReadyPercentage}%` }}
+            ></div>
+          </div>
+          {votesReady >= majorityNeeded && room.phase === 'discussion' && (
+            <p className="text-xs text-primary mt-2 font-semibold">
+              شبه الاغلبية متجهزة للتصويت! 🎯
+            </p>
+          )}
+        </div>
+      </div>
+
       <div className="text-center text-sm text-muted-foreground mb-6">
-        <p>اضغط "نبي نصوت" عندما تكون مستعداً للتصويت</p>
+        <p>اضغط "نبي نصوت" لما تحس إنك جاهز</p>
       </div>
 
       <Card className="max-w-md mx-auto mb-8">
@@ -97,7 +121,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
                 </p>
               )}
               <p className="text-sm text-muted-foreground text-center mt-4">
-                اكتشف من هو الغريب
+                الي برا السالفة معك في الجدول
               </p>
             </>
           ) : (
@@ -128,9 +152,9 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
       </div>
 
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2">وقت التصويت!</h2>
+        <h2 className="text-3xl font-bold mb-2">⏱️ وقت التصويت!</h2>
         <p className="text-muted-foreground">
-          اختر من تعتقد أنه الغريب
+          اختر الي برا السالفة عندك
         </p>
       </div>
 
@@ -148,11 +172,11 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
 
         {hasVoted ? (
           <div className="text-center">
-            <Badge variant="secondary" className="text-lg px-6 py-2">
-              تم التصويت
+            <Badge variant="secondary" className="text-lg px-6 py-2 animate-bounce">
+              ✓ صوتك مسجل
             </Badge>
             <p className="text-muted-foreground mt-4">
-              في انتظار باقي اللاعبين...
+              استنى باقي اللاعبين... 👀
             </p>
           </div>
         ) : (
@@ -161,11 +185,11 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
               size="lg"
               onClick={handleVote}
               disabled={!selectedPlayerId}
-              className="min-w-[200px]"
+              className="min-w-[200px] transition-transform hover:scale-105 active:scale-95"
               data-testid="button-submit-vote"
             >
               <Send className="w-5 h-5 ml-2" />
-              تأكيد التصويت
+              أؤكد اختياري
             </Button>
           </div>
         )}
@@ -190,25 +214,25 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
 
     return (
       <>
-        <div className="text-center mb-8">
-          <Trophy className="w-24 h-24 mx-auto mb-4 text-primary" />
+        <div className="text-center mb-8 animate-in fade-in slide-in-from-top-2">
+          <Trophy className="w-24 h-24 mx-auto mb-4 text-primary animate-bounce" />
           <h2 className="text-4xl font-bold mb-4">
-            {playersWon ? "نجحتم!" : "فشلتم!"}
+            {playersWon ? "🎉 اللعبة لكم! 🎉" : "😅 فاتتكم هذي!"}
           </h2>
           
           <Card className="max-w-md mx-auto mb-6">
             <CardContent className="pt-6">
-              <p className="text-lg mb-2">الغريب كان...</p>
-              <p className="text-5xl font-bold text-destructive mb-4" data-testid="text-odd-player">
+              <p className="text-lg mb-2">الي برا السالفة كان...</p>
+              <p className="text-5xl font-bold text-destructive mb-4 animate-pulse" data-testid="text-odd-player">
                 {oddPlayer?.name}
               </p>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">الكلمة العادية</p>
+                  <p className="text-muted-foreground">الكلمة الطبيعية</p>
                   <p className="font-semibold text-lg">{room.currentWord?.normal}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">كلمة الغريب</p>
+                  <p className="text-muted-foreground">كلمة الي برا السالفة</p>
                   <p className="font-semibold text-lg">{room.currentWord?.odd}</p>
                 </div>
               </div>
@@ -275,25 +299,39 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-6xl mx-auto py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">مين برا السالفة؟</h1>
-            <Badge variant="secondary" className="mt-2">
-              الجولة {room.roundNumber}
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="font-bold text-xl">🎮 الجولة {room.roundNumber}</h1>
+            <Badge className="text-sm">
+              {room.phase === 'discussion' && '💬 النقاش'}
+              {room.phase === 'voting' && '🗳️ التصويت'}
+              {room.phase === 'reveal' && '🎯 النتائج'}
             </Badge>
           </div>
-          <Badge className="text-lg px-4 py-2">
-            {room.phase === 'discussion' && 'مرحلة النقاش'}
-            {room.phase === 'voting' && 'مرحلة التصويت'}
-            {room.phase === 'reveal' && 'النتائج'}
-          </Badge>
+          <Link href="/">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="transition-transform hover:scale-110"
+              data-testid="button-back-to-home"
+            >
+              <Home className="w-4 h-4 ml-2" />
+              القائمة الرئيسية
+            </Button>
+          </Link>
         </div>
+      </header>
 
-        {room.phase === 'discussion' && renderDiscussionPhase()}
-        {room.phase === 'voting' && renderVotingPhase()}
-        {room.phase === 'reveal' && renderRevealPhase()}
+      {/* Main Content */}
+      <div className="p-4">
+        <div className="max-w-6xl mx-auto py-8">
+          {room.phase === 'discussion' && renderDiscussionPhase()}
+          {room.phase === 'voting' && renderVotingPhase()}
+          {room.phase === 'reveal' && renderRevealPhase()}
+        </div>
       </div>
     </div>
   );

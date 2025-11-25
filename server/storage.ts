@@ -164,9 +164,21 @@ export class MemStorage implements IStorage {
     const room = this.rooms.get(roomCode);
     if (!room || room.phase !== 'discussion') return undefined;
 
+    // Increment vote count for current player
+    room.votesReadyCount = (room.votesReadyCount || 0) + 1;
+    
+    // Check if majority is ready (more than half)
+    const majorityNeeded = Math.ceil(room.players.length / 2);
+    if (room.votesReadyCount < majorityNeeded) {
+      // Not enough votes yet - stay in discussion
+      return room;
+    }
+
+    // Majority reached - start voting phase
     room.phase = 'voting';
     room.timerEndsAt = Date.now() + 60000; // 1 minute for voting
     room.players.forEach(p => p.votedFor = undefined); // Reset votes
+    room.votesReadyCount = 0; // Reset for next round
 
     return room;
   }

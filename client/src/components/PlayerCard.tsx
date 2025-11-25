@@ -1,0 +1,63 @@
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Crown, WifiOff } from "lucide-react";
+import type { Player } from "@shared/schema";
+
+interface PlayerCardProps {
+  player: Player;
+  isSelected?: boolean;
+  onClick?: () => void;
+  showVote?: boolean;
+  votedFor?: string;
+}
+
+export function PlayerCard({ player, isSelected, onClick, showVote, votedFor }: PlayerCardProps) {
+  const initials = player.name.slice(0, 2).toUpperCase();
+  
+  return (
+    <Card
+      className={`
+        p-4 relative hover-elevate cursor-pointer transition-all
+        ${isSelected ? 'ring-4 ring-primary' : ''}
+        ${!player.isConnected ? 'opacity-50' : ''}
+      `}
+      onClick={onClick}
+      data-testid={`card-player-${player.id}`}
+    >
+      {player.isHost && (
+        <div className="absolute top-2 left-2">
+          <Crown className="w-5 h-5 text-primary fill-primary" data-testid="icon-host" />
+        </div>
+      )}
+      
+      <div className="flex flex-col items-center gap-3">
+        <div className="relative">
+          <Avatar className="w-16 h-16">
+            <AvatarFallback className="text-lg font-bold bg-primary/10 text-primary">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          
+          {!player.isConnected && (
+            <div className="absolute -bottom-1 -right-1 bg-destructive rounded-full p-1">
+              <WifiOff className="w-3 h-3 text-destructive-foreground" />
+            </div>
+          )}
+        </div>
+        
+        <div className="text-center w-full">
+          <p className="font-medium text-sm truncate" data-testid={`text-name-${player.id}`}>
+            {player.name}
+          </p>
+          
+          {showVote && votedFor && (
+            <Badge variant="secondary" className="mt-2 text-xs">
+              صوّت لـ: {votedFor}
+            </Badge>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}

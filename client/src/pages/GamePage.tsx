@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlayerCard } from "@/components/PlayerCard";
 import { Timer } from "@/components/Timer";
-import { Eye, EyeOff, Trophy, RefreshCw } from "lucide-react";
+import { Eye, EyeOff, Trophy, RefreshCw, Send, Vote, ChevronRight } from "lucide-react";
 import type { Room } from "@shared/schema";
 import type { WSMessage } from "@shared/schema";
 
@@ -23,7 +23,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   const hasVoted = currentPlayer?.votedFor !== undefined;
 
   const handleVote = () => {
-    if (selectedPlayerId && selectedPlayerId !== playerId) {
+    if (selectedPlayerId) {
       onSendMessage({
         type: 'vote',
         data: { targetPlayerId: selectedPlayerId }
@@ -59,8 +59,13 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
           className="min-w-[200px]"
           data-testid="button-start-voting"
         >
+          <Vote className="w-5 h-5 ml-2" />
           نبي نصوت
         </Button>
+      </div>
+
+      <div className="text-center text-sm text-muted-foreground mb-6">
+        <p>اضغط "نبي نصوت" عندما تكون مستعداً للتصويت</p>
       </div>
 
       <Card className="max-w-md mx-auto mb-8">
@@ -136,7 +141,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
               key={player.id}
               player={player}
               isSelected={selectedPlayerId === player.id}
-              onClick={() => !hasVoted && player.id !== playerId && setSelectedPlayerId(player.id)}
+              onClick={() => !hasVoted && setSelectedPlayerId(player.id)}
             />
           ))}
         </div>
@@ -144,7 +149,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         {hasVoted ? (
           <div className="text-center">
             <Badge variant="secondary" className="text-lg px-6 py-2">
-              تم التصويت ✓
+              تم التصويت
             </Badge>
             <p className="text-muted-foreground mt-4">
               في انتظار باقي اللاعبين...
@@ -155,10 +160,11 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
             <Button
               size="lg"
               onClick={handleVote}
-              disabled={!selectedPlayerId || selectedPlayerId === playerId}
+              disabled={!selectedPlayerId}
               className="min-w-[200px]"
               data-testid="button-submit-vote"
             >
+              <Send className="w-5 h-5 ml-2" />
               تأكيد التصويت
             </Button>
           </div>
@@ -187,7 +193,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         <div className="text-center mb-8">
           <Trophy className="w-24 h-24 mx-auto mb-4 text-primary" />
           <h2 className="text-4xl font-bold mb-4">
-            {playersWon ? "نجحتم! 🎉" : "فشلتم! 😅"}
+            {playersWon ? "نجحتم!" : "فشلتم!"}
           </h2>
           
           <Card className="max-w-md mx-auto mb-6">

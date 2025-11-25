@@ -62,6 +62,12 @@ export function PlayerCard({ player, isSelected, onClick, showVote, votedFor, pl
             </Badge>
           )}
           
+          {player.points !== undefined && player.points > 0 && (
+            <Badge variant="default" className="mt-2 text-xs" data-testid={`badge-points-${player.id}`}>
+              {player.points} نقطة
+            </Badge>
+          )}
+          
           {showVote && votedFor && (
             <Badge variant="secondary" className="mt-2 text-xs">
               صوّت لـ: {votedFor}

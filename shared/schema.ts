@@ -11,6 +11,7 @@ export const playerSchema = z.object({
   isConnected: z.boolean(),
   votedFor: z.string().optional(),
   isOddOneOut: z.boolean().optional(),
+  points: z.number().default(0),
 });
 
 export type Player = z.infer<typeof playerSchema>;
@@ -64,6 +65,7 @@ export const roomSchema = z.object({
   timerEndsAt: z.number().optional(),
   roundNumber: z.number(),
   votes: z.record(z.string(), z.string()).optional(),
+  votesReadyCount: z.number().default(0),
 });
 
 export type Room = z.infer<typeof roomSchema>;

@@ -73,15 +73,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentRoom = storage.getRoom(roomCode);
       if (!currentRoom) return;
 
-      // Auto-vote for players who haven't voted
+      // Auto-vote for players who haven't voted (random selection)
       currentRoom.players.forEach(player => {
         if (!player.votedFor) {
-          // Don't vote for yourself
-          const otherPlayers = currentRoom.players.filter(p => p.id !== player.id);
-          if (otherPlayers.length > 0) {
-            const randomTarget = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
-            player.votedFor = randomTarget.id;
-          }
+          // Can vote for anyone, including themselves
+          const randomIndex = Math.floor(Math.random() * currentRoom.players.length);
+          player.votedFor = currentRoom.players[randomIndex].id;
         }
       });
 
@@ -204,16 +201,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           case 'vote': {
             if (!clientData.roomCode || !clientData.playerId) break;
-
-            // Prevent voting for yourself
-            if (message.data.targetPlayerId === clientData.playerId) {
-              const errorResponse: WSResponse = {
-                type: 'error',
-                message: 'لا يمكنك التصويت لنفسك',
-              };
-              ws.send(JSON.stringify(errorResponse));
-              break;
-            }
 
             const result = storage.submitVote(clientData.roomCode, clientData.playerId, message.data.targetPlayerId);
             

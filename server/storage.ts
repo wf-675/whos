@@ -80,6 +80,7 @@ export class MemStorage implements IStorage {
       name: hostName,
       isHost: true,
       isConnected: true,
+      points: 0,
     };
 
     const room: Room = {
@@ -89,6 +90,7 @@ export class MemStorage implements IStorage {
       players: [host],
       messages: [],
       roundNumber: 1,
+      votesReadyCount: 0,
     };
 
     this.rooms.set(code, room);
@@ -116,6 +118,7 @@ export class MemStorage implements IStorage {
       name: playerName,
       isHost: false,
       isConnected: true,
+      points: 0,
     };
 
     room.players.push(player);
@@ -148,10 +151,11 @@ export class MemStorage implements IStorage {
       player.votedFor = undefined;
     });
 
-    // Start discussion phase with timer (2 minutes)
+    // Start discussion phase with timer (3 minutes)
     room.phase = 'discussion';
-    room.timerEndsAt = Date.now() + 120000; // 2 minutes
+    room.timerEndsAt = Date.now() + 180000; // 3 minutes
     room.messages = [];
+    room.votesReadyCount = 0;
 
     return room;
   }
@@ -192,9 +196,23 @@ export class MemStorage implements IStorage {
 
     player.votedFor = targetPlayerId;
 
+    // Calculate points
+    const oddPlayer = room.players.find(p => p.id === room.oddOneOutId);
+    if (targetPlayerId === room.oddOneOutId && oddPlayer) {
+      // Correct guess - give points to whoever voted for odd-one-out
+      player.points = (player.points || 0) + 10;
+    } else if (targetPlayerId === playerId && playerId === room.oddOneOutId) {
+      // Odd-one-out guesses themselves correctly
+      player.points = (player.points || 0) + 15;
+    }
+
     // Check if all players have voted
     const allVoted = room.players.every(p => p.votedFor !== undefined);
     if (allVoted) {
+      // Award odd-one-out extra points if they guessed correctly
+      if (oddPlayer && oddPlayer.votedFor === room.oddOneOutId) {
+        oddPlayer.points = (oddPlayer.points || 0) + 5; // Bonus for self-identification
+      }
       // Move to reveal phase
       room.phase = 'reveal';
       room.timerEndsAt = undefined;
@@ -219,11 +237,12 @@ export class MemStorage implements IStorage {
       player.votedFor = undefined;
     });
 
-    // Start discussion phase
+    // Start discussion phase with 3 minutes
     room.phase = 'discussion';
-    room.timerEndsAt = Date.now() + 120000; // 2 minutes
+    room.timerEndsAt = Date.now() + 180000; // 3 minutes
     room.messages = [];
     room.roundNumber++;
+    room.votesReadyCount = 0;
 
     return room;
   }

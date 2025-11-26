@@ -53,11 +53,19 @@ export class MemStorage implements IStorage {
     return code;
   }
 
-  private getRandomWordPair(): WordPair {
-    const packIndex = Math.floor(Math.random() * this.wordPacks.length);
-    const pack = this.wordPacks[packIndex];
-    const pairIndex = Math.floor(Math.random() * pack.length);
-    return pack[pairIndex];
+  private getRandomWordPair(usedWords: string[] = []): WordPair {
+    let wordPair: WordPair;
+    let attempts = 0;
+    
+    do {
+      const packIndex = Math.floor(Math.random() * this.wordPacks.length);
+      const pack = this.wordPacks[packIndex];
+      const pairIndex = Math.floor(Math.random() * pack.length);
+      wordPair = pack[pairIndex];
+      attempts++;
+    } while (usedWords.includes(wordPair.normal) && attempts < 100);
+    
+    return wordPair;
   }
 
   private getRandomOddOneOut(roomCode: string, players: Player[]): string {
@@ -83,6 +91,7 @@ export class MemStorage implements IStorage {
       messages: [],
       roundNumber: 1,
       votesReadyCount: 0,
+      usedWords: [],
     };
 
     this.rooms.set(code, room);
@@ -131,9 +140,13 @@ export class MemStorage implements IStorage {
     const room = this.rooms.get(roomCode);
     if (!room || room.phase !== 'lobby' || room.players.length < 3) return undefined;
 
-    // Select random word pair
-    const wordPair = this.getRandomWordPair();
+    // Select random word pair (avoid duplicates)
+    const wordPair = this.getRandomWordPair(room.usedWords || []);
     room.currentWord = wordPair;
+    
+    // Add to used words
+    if (!room.usedWords) room.usedWords = [];
+    room.usedWords.push(wordPair.normal);
 
     // Select random odd one out (prevent repeats)
     room.oddOneOutId = this.getRandomOddOneOut(roomCode, room.players);

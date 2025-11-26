@@ -51,7 +51,9 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   const renderDiscussionPhase = () => (
     <>
       <div className="text-center mb-6">
-        <h2 className="text-3xl font-bold mb-2">النقاش والحوار 💬</h2>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <h2 className="text-3xl font-bold">النقاش والحوار</h2>
+        </div>
         <p className="text-muted-foreground">
           تحدثوا وافتكروا من الي برا السالفة
         </p>
@@ -82,7 +84,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
           </div>
           {votesReady >= majorityNeeded && room.phase === 'discussion' && (
             <p className="text-xs text-primary mt-2 font-semibold">
-              شبه الاغلبية متجهزة للتصويت! 🎯
+              الأغلبية متجهزة للتصويت!
             </p>
           )}
         </div>
@@ -152,7 +154,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
       </div>
 
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2">⏱️ وقت التصويت!</h2>
+        <h2 className="text-3xl font-bold mb-2">وقت التصويت!</h2>
         <p className="text-muted-foreground">
           اختر الي برا السالفة عندك
         </p>
@@ -304,11 +306,11 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
       <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="font-bold text-xl">🎮 الجولة {room.roundNumber}</h1>
+            <h1 className="font-bold text-xl">الجولة {room.roundNumber}</h1>
             <Badge className="text-sm">
-              {room.phase === 'discussion' && '💬 النقاش'}
-              {room.phase === 'voting' && '🗳️ التصويت'}
-              {room.phase === 'reveal' && '🎯 النتائج'}
+              {room.phase === 'discussion' && 'النقاش'}
+              {room.phase === 'voting' && 'التصويت'}
+              {room.phase === 'reveal' && 'النتائج'}
             </Badge>
           </div>
           <Link href="/">

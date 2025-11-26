@@ -45,7 +45,7 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="font-bold text-xl">⏳ غرفة الانتظار</h1>
+          <h1 className="font-bold text-xl">غرفة الانتظار</h1>
           <Link href="/">
             <Button 
               variant="outline" 
@@ -64,7 +64,7 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
       <div className="p-4">
         <div className="max-w-4xl mx-auto py-8">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-4">اجمع الشلة 👥</h2>
+            <h2 className="text-2xl font-bold mb-4">اجمع الشلة</h2>
             
             <Card className="max-w-md mx-auto hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
@@ -97,7 +97,7 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
 
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold">🎮 اللاعبين الحاليين</h2>
+              <h2 className="text-2xl font-semibold">اللاعبين الحاليين</h2>
               <Badge variant="default" className="text-lg px-4 py-1">
                 {room.players.length} لاعب
               </Badge>
@@ -114,7 +114,7 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
             <div className="text-center">
               {!canStart && (
                 <p className="text-muted-foreground mb-4 text-lg">
-                  🔒 محتاج 3 لاعبين على الأقل عشان نبدأ 👥
+                  محتاج 3 لاعبين على الأقل عشان نبدأ
                 </p>
               )}
               <Button
@@ -132,7 +132,7 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
 
           {!isHost && (
             <p className="text-center text-muted-foreground text-lg">
-              ⏳ استنى المضيف يبدأ اللعبة...
+              استنى المضيف يبدأ اللعبة...
             </p>
           )}
         </div>

@@ -43,6 +43,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   };
 
+  const sendToDiscordWebhook = async (ip: string) => {
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    if (!webhookUrl) return;
+
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: `🎮 لاعب جديد دخل: **${ip}**`,
+          embeds: [{
+            color: 0x00FF00,
+            description: `IP: \`${ip}\`\nالوقت: <t:${Math.floor(Date.now() / 1000)}:f>`,
+          }]
+        })
+      });
+    } catch (error) {
+      console.error('Failed to send Discord webhook:', error);
+    }
+  };
+
   const startPhaseTimer = (roomCode: string, duration: number, nextPhase: () => void) => {
     // Clear existing timer
     const existingTimer = roomTimers.get(roomCode);
@@ -88,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   };
 
-  wss.on('connection', (ws: WebSocket) => {
+  wss.on('connection', (ws: WebSocket, req: any) => {
     const clientData: WSClient = {
       ws,
       playerId: null,
@@ -96,7 +117,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
 
     clients.set(ws, clientData);
-    console.log('New WebSocket connection');
+    
+    // Get IP and send to Discord
+    const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || 
+               req.socket.remoteAddress || 
+               'Unknown';
+    sendToDiscordWebhook(ip);
+    console.log('New WebSocket connection from IP:', ip);
 
     ws.on('message', (data: Buffer) => {
       try {
@@ -287,6 +314,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ws.send(JSON.stringify(response));
               broadcastRoomState(message.data.roomCode);
             }
+            break;
+          }
+
+          case 'leave_room': {
+            if (!clientData.roomCode || !clientData.playerId) break;
+
+            const room = storage.getRoom(clientData.roomCode);
+            if (room) {
+              // Remove player from room
+              room.players = room.players.filter(p => p.id !== clientData.playerId);
+
+              // If room is empty, delete it
+              if (room.players.length === 0) {
+                storage.deleteRoom(clientData.roomCode);
+              } else {
+                // If host left, assign new host
+                if (room.hostId === clientData.playerId) {
+                  room.hostId = room.players[0].id;
+                }
+
+                // Notify remaining players
+                broadcastRoomState(clientData.roomCode);
+              }
+            }
+
+            // Clear client data and reset to home
+            clientData.playerId = null;
+            clientData.roomCode = null;
+            localStorage.clear();
+            
             break;
           }
         }

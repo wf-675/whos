@@ -57,17 +57,21 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
       <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="font-bold text-xl">غرفة الانتظار</h1>
-          <Link href="/">
+          <div className="flex gap-2">
             <Button 
-              variant="outline" 
+              variant="destructive"
               size="sm"
+              onClick={() => {
+                onSendMessage({ type: 'leave_room' });
+                localStorage.clear();
+              }}
               className="transition-transform hover:scale-110"
-              data-testid="button-back-to-home"
+              data-testid="button-leave-room"
             >
               <Home className="w-4 h-4 ml-2" />
-              القائمة الرئيسية
+              خروج
             </Button>
-          </Link>
+          </div>
         </div>
       </header>
 

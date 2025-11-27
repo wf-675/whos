@@ -15,6 +15,7 @@ export interface IStorage {
   startNextRound(roomCode: string): Room | undefined;
   kickPlayer(roomCode: string, targetPlayerId: string): Room | undefined;
   reconnectPlayer(roomCode: string, playerId: string): Room | undefined;
+  deleteRoom(code: string): void;
 }
 
 export class MemStorage implements IStorage {
@@ -302,6 +303,10 @@ export class MemStorage implements IStorage {
     // Reconnect player
     player.isConnected = true;
     return room;
+  }
+
+  deleteRoom(code: string): void {
+    this.rooms.delete(code);
   }
 }
 

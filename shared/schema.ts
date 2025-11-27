@@ -108,7 +108,8 @@ export type WSMessage =
   | { type: 'start_voting' }
   | { type: 'vote'; data: z.infer<typeof voteSchema> }
   | { type: 'next_round' }
-  | { type: 'kick_player'; data: z.infer<typeof kickPlayerSchema> };
+  | { type: 'kick_player'; data: z.infer<typeof kickPlayerSchema> }
+  | { type: 'leave_room' };
 
 export type WSResponse =
   | { type: 'room_created'; roomCode: string; playerId: string }

@@ -61,7 +61,22 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
       <div className="p-4">
         <div className="max-w-4xl mx-auto py-8">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-4">اجمع الشلة</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">اجمع الشلة</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onSendMessage({ type: 'leave_room' });
+                  localStorage.removeItem('playerId');
+                  localStorage.removeItem('roomCode');
+                }}
+                className="flex items-center gap-2"
+              >
+                <Home className="w-4 h-4" />
+                خروج
+              </Button>
+            </div>
             
             <Card className="max-w-md mx-auto hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">

@@ -149,9 +149,19 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
                   ••••••
                 </p>
               )}
-              <p className="text-sm text-muted-foreground text-center mt-4">
-                الي برا السالفة معك في الجدول
-              </p>
+              {room.settings?.allowOddOneOutReveal && isOddOneOut ? (
+                <p className="text-sm text-destructive text-center mt-4 font-semibold">
+                  أنت برا السالفة!
+                </p>
+              ) : !room.settings?.allowOddOneOutReveal && isOddOneOut ? (
+                <p className="text-sm text-muted-foreground text-center mt-4">
+                  الي برا السالفة معك في الجدول
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center mt-4">
+                  أنت بالسالفة
+                </p>
+              )}
             </>
           ) : (
             <div className="text-center py-4">

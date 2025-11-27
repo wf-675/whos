@@ -314,17 +314,19 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
               {room.phase === 'reveal' && 'النتائج'}
             </Badge>
           </div>
-          <Link href="/">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="transition-transform hover:scale-110"
-              data-testid="button-back-to-home"
-            >
-              <Home className="w-4 h-4 ml-2" />
-              القائمة الرئيسية
-            </Button>
-          </Link>
+          <Button 
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              onSendMessage({ type: 'leave_room' });
+              localStorage.clear();
+              window.location.href = '/';
+            }}
+            data-testid="button-leave-game"
+          >
+            <Home className="w-4 h-4 ml-2" />
+            خروج
+          </Button>
         </div>
       </header>
 

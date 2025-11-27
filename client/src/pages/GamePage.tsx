@@ -220,12 +220,16 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
             // Calculate vote count for this player
             const voteCount = room.players.filter(p => p.votedFor === player.id).length;
             
+            // If odd one out knows their role, prevent them from voting for themselves
+            const canVoteForThisPlayer = !hasVoted && 
+              !(room.settings?.allowOddOneOutReveal && isOddOneOut && player.id === playerId);
+            
             return (
               <div key={player.id} className="relative">
                 <PlayerCard
                   player={player}
                   isSelected={selectedPlayerId === player.id}
-                  onClick={() => !hasVoted && setSelectedPlayerId(player.id)}
+                  onClick={() => canVoteForThisPlayer && setSelectedPlayerId(player.id)}
                   voteCount={voteCount}
                   showPoints={false}
                 />

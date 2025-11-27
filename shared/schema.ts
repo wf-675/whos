@@ -71,6 +71,7 @@ export const roomSchema = z.object({
   settings: z.object({
     allowOddOneOutReveal: z.boolean().default(false),
     enableTimer: z.boolean().default(true),
+    discussionTimeMinutes: z.number().default(3).min(1).max(10),
     category: z.string().optional(),
   }).optional(),
 });
@@ -108,6 +109,7 @@ export const reconnectSchema = z.object({
 export const updateSettingsSchema = z.object({
   allowOddOneOutReveal: z.boolean().optional(),
   enableTimer: z.boolean().optional(),
+  discussionTimeMinutes: z.number().min(1).max(10).optional(),
   category: z.string().optional(),
 });
 

@@ -29,7 +29,7 @@ export class MemStorage implements IStorage {
   }
 
   private loadWordPacks(): WordPair[][] {
-    const packFiles = ['animals', 'food', 'countries', 'sports', 'professions'];
+    const packFiles = ['animals', 'food', 'countries', 'sports', 'professions', 'players'];
     const packs: WordPair[][] = [];
 
     for (const file of packFiles) {
@@ -97,6 +97,11 @@ export class MemStorage implements IStorage {
       roundNumber: 1,
       votesReadyCount: 0,
       usedWords: [],
+      settings: {
+        allowOddOneOutReveal: false,
+        enableTimer: true,
+        discussionTimeMinutes: 3,
+      },
     };
 
     this.rooms.set(code, room);
@@ -167,7 +172,8 @@ export class MemStorage implements IStorage {
             // Start discussion phase with timer (if enabled)
             room.phase = 'discussion';
             if (room.settings?.enableTimer !== false) {
-              room.timerEndsAt = Date.now() + 180000; // 3 minutes
+              const minutes = room.settings?.discussionTimeMinutes || 3;
+              room.timerEndsAt = Date.now() + (minutes * 60000);
             } else {
               room.timerEndsAt = undefined;
             }
@@ -234,6 +240,11 @@ export class MemStorage implements IStorage {
     const player = room.players.find(p => p.id === playerId);
     if (!player || player.votedFor) return undefined;
 
+    // If odd one out knows their role and tries to vote for themselves, prevent it
+    if (room.settings?.allowOddOneOutReveal && playerId === room.oddOneOutId && targetPlayerId === playerId) {
+      return undefined; // Prevent odd one out from voting for themselves if they know their role
+    }
+
     player.votedFor = targetPlayerId;
 
     // Calculate points
@@ -287,7 +298,8 @@ export class MemStorage implements IStorage {
     // Start discussion phase with timer (if enabled)
     room.phase = 'discussion';
     if (room.settings?.enableTimer !== false) {
-      room.timerEndsAt = Date.now() + 180000; // 3 minutes
+      const minutes = room.settings?.discussionTimeMinutes || 3;
+      room.timerEndsAt = Date.now() + (minutes * 60000);
     } else {
       room.timerEndsAt = undefined;
     }
@@ -342,7 +354,7 @@ export class MemStorage implements IStorage {
     this.rooms.delete(code);
   }
 
-  updateSettings(roomCode: string, settings: { allowOddOneOutReveal?: boolean; enableTimer?: boolean; category?: string }): Room | undefined {
+  updateSettings(roomCode: string, settings: { allowOddOneOutReveal?: boolean; enableTimer?: boolean; discussionTimeMinutes?: number; category?: string }): Room | undefined {
     const room = this.rooms.get(roomCode);
     if (!room) return undefined;
 
@@ -350,6 +362,7 @@ export class MemStorage implements IStorage {
       room.settings = {
         allowOddOneOutReveal: false,
         enableTimer: true,
+        discussionTimeMinutes: 3,
       };
     }
 

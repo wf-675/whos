@@ -68,11 +68,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const isOddOneOut = room.oddOneOutId === client.playerId;
         // Check if odd one out should know their role
         const shouldReveal = room.settings?.allowOddOneOutReveal || false;
-        const playerWord = room.phase === 'lobby' 
-          ? null 
-          : (isOddOneOut && shouldReveal 
-            ? room.currentWord?.odd 
-            : room.currentWord?.normal);
+        let playerWord: string | null = null;
+        
+        if (room.phase !== 'lobby' && room.currentWord) {
+          if (isOddOneOut) {
+            // If odd one out, show odd word if reveal is enabled, otherwise show normal (to hide)
+            playerWord = shouldReveal ? room.currentWord.odd : room.currentWord.normal;
+          } else {
+            // Normal players always see normal word
+            playerWord = room.currentWord.normal;
+          }
+        }
 
         const response: WSResponse = {
           type: 'room_state',

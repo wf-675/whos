@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Settings, X } from "lucide-react";
 import {
   Dialog,
@@ -26,6 +27,7 @@ export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps)
   const [open, setOpen] = useState(false);
   const [allowReveal, setAllowReveal] = useState(room.settings?.allowOddOneOutReveal || false);
   const [enableTimer, setEnableTimer] = useState(room.settings?.enableTimer ?? true);
+  const [discussionTime, setDiscussionTime] = useState(room.settings?.discussionTimeMinutes || 3);
   const [category, setCategory] = useState(room.settings?.category || "random");
 
   // Update state when room settings change
@@ -33,6 +35,7 @@ export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps)
     if (room.settings) {
       setAllowReveal(room.settings.allowOddOneOutReveal || false);
       setEnableTimer(room.settings.enableTimer ?? true);
+      setDiscussionTime(room.settings.discussionTimeMinutes || 3);
       setCategory(room.settings.category || "random");
     }
   }, [room.settings]);
@@ -45,6 +48,7 @@ export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps)
       data: {
         allowOddOneOutReveal: allowReveal,
         enableTimer,
+        discussionTimeMinutes: discussionTime,
         category: category === "random" ? undefined : category,
       }
     });
@@ -85,7 +89,7 @@ export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps)
             <div className="space-y-0.5">
               <Label htmlFor="timer">تفعيل التايمر</Label>
               <p className="text-sm text-muted-foreground">
-                تايمر تلقائي للنقاش والتصويت
+                تايمر تلقائي للنقاش
               </p>
             </div>
             <Switch
@@ -94,6 +98,24 @@ export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps)
               onCheckedChange={setEnableTimer}
             />
           </div>
+
+          {enableTimer && (
+            <div className="space-y-2">
+              <Label htmlFor="discussion-time">وقت النقاش (بالدقائق)</Label>
+              <Input
+                id="discussion-time"
+                type="number"
+                min="1"
+                max="10"
+                value={discussionTime}
+                onChange={(e) => setDiscussionTime(Math.max(1, Math.min(10, parseInt(e.target.value) || 3)))}
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">
+                وقت التصويت ثابت (1 دقيقة)
+              </p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="category">الكاتقوري</Label>
@@ -108,6 +130,7 @@ export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps)
                 <SelectItem value="countries">دول</SelectItem>
                 <SelectItem value="sports">رياضة</SelectItem>
                 <SelectItem value="professions">مهن</SelectItem>
+                <SelectItem value="players">لاعبين</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">

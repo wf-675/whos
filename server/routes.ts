@@ -236,8 +236,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (!clientData.roomCode || !clientData.playerId) break;
 
             const room = storage.getRoom(clientData.roomCode);
-            // Only host can kick players
-            if (room && room.hostId === clientData.playerId) {
+            // Only host can kick players, and only in lobby phase
+            if (room && room.hostId === clientData.playerId && room.phase === 'lobby') {
               const updatedRoom = storage.kickPlayer(clientData.roomCode, message.data.targetPlayerId);
               if (updatedRoom) {
                 broadcastRoomState(clientData.roomCode);

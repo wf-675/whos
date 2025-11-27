@@ -95,10 +95,10 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         <p>اضغط "نبي نصوت" لما تحس إنك جاهز</p>
       </div>
 
-      <Card className={`max-w-md mx-auto mb-8 ${isOddOneOut ? 'border-destructive/50 bg-destructive/5' : ''}`}>
+      <Card className="max-w-md mx-auto mb-8">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">{isOddOneOut ? 'أنت برا السالفة!' : 'كلمتك'}</h3>
+            <h3 className="font-semibold">كلمتك</h3>
             {playerWord && (
               <Button
                 variant="ghost"
@@ -124,19 +124,12 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
                 </p>
               )}
               <p className="text-sm text-muted-foreground text-center mt-4">
-                {isOddOneOut ? 'لا تشوف الكلمة ولازم تخمنها من الأسئلة' : 'الي برا السالفة معك في الجدول'}
+                الي برا السالفة معك في الجدول
               </p>
             </>
           ) : (
             <div className="text-center py-4">
-              {isOddOneOut ? (
-                <div>
-                  <p className="text-lg font-bold text-destructive mb-2">أنت برا السالفة!</p>
-                  <p className="text-sm text-muted-foreground">اسأل وحاول تخمن الكلمة من أسئلة الباقين</p>
-                </div>
-              ) : (
-                <p className="text-muted-foreground">جاري تحميل الكلمة...</p>
-              )}
+              <p className="text-muted-foreground">جاري تحميل الكلمة...</p>
             </div>
           )}
         </CardContent>

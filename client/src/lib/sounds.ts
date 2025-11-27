@@ -8,7 +8,7 @@ class SoundManager {
     }
   }
 
-  private playTone(frequency: number, duration: number, type: OscillatorType = 'sine', volume: number = 0.1) {
+  private playTone(frequency: number, duration: number, type: OscillatorType = 'sine', volume: number = 0.03) {
     if (!this.audioContext) return;
 
     const oscillator = this.audioContext.createOscillator();
@@ -27,11 +27,10 @@ class SoundManager {
     oscillator.stop(this.audioContext.currentTime + duration);
   }
 
-  // Success sound (positive feedback)
+  // Success sound (positive feedback) - very light
   playSuccess() {
-    this.playTone(523.25, 0.1); // C5
-    setTimeout(() => this.playTone(659.25, 0.15), 100); // E5
-    setTimeout(() => this.playTone(783.99, 0.2), 200); // G5
+    this.playTone(523.25, 0.08, 'sine', 0.03); // C5
+    setTimeout(() => this.playTone(659.25, 0.1, 'sine', 0.03), 80); // E5
   }
 
   // Error sound (negative feedback)
@@ -40,9 +39,9 @@ class SoundManager {
     setTimeout(() => this.playTone(150, 0.2, 'sawtooth'), 100);
   }
 
-  // Click sound (button press)
+  // Click sound (button press) - very light
   playClick() {
-    this.playTone(800, 0.05, 'square', 0.05);
+    this.playTone(800, 0.03, 'square', 0.02);
   }
 
   // Notification sound (new message, player joined)

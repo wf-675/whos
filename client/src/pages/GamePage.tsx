@@ -216,40 +216,47 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
 
       <div className="max-w-4xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-          {room.players.map((player) => (
-            <div key={player.id} className="relative">
-              <PlayerCard
-                player={player}
-                isSelected={selectedPlayerId === player.id}
-                onClick={() => !hasVoted && setSelectedPlayerId(player.id)}
-              />
-              {isHost && !player.isHost && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-2 left-2 h-6 w-6 rounded-full"
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
-                      onClick={() => onSendMessage({ 
-                        type: 'kick_player', 
-                        data: { targetPlayerId: player.id } 
-                      })}
-                      className="text-destructive"
-                    >
-                      <X className="w-4 h-4 ml-2" />
-                      طرد اللاعب
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          ))}
+          {room.players.map((player) => {
+            // Calculate vote count for this player
+            const voteCount = room.players.filter(p => p.votedFor === player.id).length;
+            
+            return (
+              <div key={player.id} className="relative">
+                <PlayerCard
+                  player={player}
+                  isSelected={selectedPlayerId === player.id}
+                  onClick={() => !hasVoted && setSelectedPlayerId(player.id)}
+                  voteCount={voteCount}
+                  showPoints={false}
+                />
+                {isHost && !player.isHost && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 left-2 h-6 w-6 rounded-full z-10"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem 
+                        onClick={() => onSendMessage({ 
+                          type: 'kick_player', 
+                          data: { targetPlayerId: player.id } 
+                        })}
+                        className="text-destructive"
+                      >
+                        <X className="w-4 h-4 ml-2" />
+                        طرد اللاعب
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {hasVoted ? (
@@ -332,6 +339,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
                     key={oddPlayer.id}
                     player={oddPlayer}
                     playerRole="odd"
+                    showPoints={true}
                   />
                 )}
               </div>
@@ -345,6 +353,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
                     key={player.id}
                     player={player}
                     playerRole="normal"
+                    showPoints={true}
                   />
                 ))}
               </div>
@@ -360,6 +369,8 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
                 key={player.id}
                 player={player}
                 showVote
+                votedFor={room.players.find(p => p.id === player.votedFor)?.name || 'لم يصوت'}
+                showPoints={true}
               />
             ))}
           </div>

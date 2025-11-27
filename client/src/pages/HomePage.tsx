@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Plus } from "lucide-react";
+import { Link } from "wouter";
 import type { WSMessage } from "@shared/schema";
 
 interface HomePageProps {
@@ -12,30 +13,26 @@ interface HomePageProps {
 }
 
 export default function HomePage({ onSendMessage }: HomePageProps) {
-  const [createName, setCreateName] = useState(() => localStorage.getItem('playerName') || "");
-  const [joinName, setJoinName] = useState(() => localStorage.getItem('playerName') || "");
   const [joinCode, setJoinCode] = useState("");
+  const playerName = localStorage.getItem('playerName') || "";
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (createName.trim()) {
-      localStorage.setItem('playerName', createName.trim());
+    if (playerName) {
       onSendMessage({
         type: 'create_room',
-        data: { playerName: createName.trim() }
+        data: { playerName }
       });
     }
   };
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
-    const nameToUse = joinName.trim() || createName.trim();
-    if (nameToUse && joinCode.trim()) {
-      localStorage.setItem('playerName', nameToUse);
+    if (playerName && joinCode.trim()) {
       onSendMessage({
         type: 'join_room',
         data: {
-          playerName: nameToUse,
+          playerName,
           roomCode: joinCode.trim().toUpperCase()
         }
       });
@@ -75,22 +72,24 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleCreate} className="space-y-4">
-                  <div>
-                    <Label htmlFor="create-name">اسمك</Label>
-                    <Input
-                      id="create-name"
-                      value={createName}
-                      onChange={(e) => setCreateName(e.target.value)}
-                      placeholder="أدخل اسمك"
-                      maxLength={20}
-                      className="mt-2"
-                      data-testid="input-create-name"
-                    />
-                  </div>
+                  {playerName && (
+                    <div className="text-center p-3 bg-muted rounded-lg mb-4">
+                      <p className="text-sm text-muted-foreground">اللعب باسم:</p>
+                      <p className="font-semibold text-lg">{playerName}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        يمكنك تغيير الاسم من <Link href="/profile" className="text-primary hover:underline">الملف الشخصي</Link>
+                      </p>
+                    </div>
+                  )}
+                  {!playerName && (
+                    <div className="text-center p-4 bg-destructive/10 rounded-lg mb-4">
+                      <p className="text-sm text-destructive">الرجاء إدخال اسمك من <Link href="/profile" className="font-semibold hover:underline">الملف الشخصي</Link> أولاً</p>
+                    </div>
+                  )}
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={!createName.trim()}
+                    disabled={!playerName}
                     data-testid="button-create-room"
                   >
                     إنشاء الغرفة
@@ -110,18 +109,20 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleJoin} className="space-y-4">
-                  <div>
-                    <Label htmlFor="join-name">اسمك</Label>
-                    <Input
-                      id="join-name"
-                      value={joinName}
-                      onChange={(e) => setJoinName(e.target.value)}
-                      placeholder="أدخل اسمك"
-                      maxLength={20}
-                      className="mt-2"
-                      data-testid="input-join-name"
-                    />
-                  </div>
+                  {playerName && (
+                    <div className="text-center p-3 bg-muted rounded-lg mb-4">
+                      <p className="text-sm text-muted-foreground">اللعب باسم:</p>
+                      <p className="font-semibold text-lg">{playerName}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        يمكنك تغيير الاسم من <Link href="/profile" className="text-primary hover:underline">الملف الشخصي</Link>
+                      </p>
+                    </div>
+                  )}
+                  {!playerName && (
+                    <div className="text-center p-4 bg-destructive/10 rounded-lg mb-4">
+                      <p className="text-sm text-destructive">الرجاء إدخال اسمك من <Link href="/profile" className="font-semibold hover:underline">الملف الشخصي</Link> أولاً</p>
+                    </div>
+                  )}
                   <div>
                     <Label htmlFor="join-code">كود الغرفة</Label>
                     <Input
@@ -137,7 +138,7 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={!joinName.trim() || joinCode.length !== 6}
+                    disabled={!playerName || joinCode.length !== 6}
                     data-testid="button-join-room"
                   >
                     الانضمام للغرفة

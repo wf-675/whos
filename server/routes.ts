@@ -251,6 +251,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             break;
           }
+
+          case 'reconnect': {
+            const room = storage.getRoom(message.data.roomCode);
+            if (!room) {
+              const errorResponse: WSResponse = {
+                type: 'error',
+                message: 'الغرفة غير موجودة',
+              };
+              ws.send(JSON.stringify(errorResponse));
+              break;
+            }
+
+            const player = room.players.find(p => p.id === message.data.playerId);
+            if (!player) {
+              const errorResponse: WSResponse = {
+                type: 'error',
+                message: 'اللاعب غير موجود',
+              };
+              ws.send(JSON.stringify(errorResponse));
+              break;
+            }
+
+            // Reconnect player
+            const updatedRoom = storage.reconnectPlayer(message.data.roomCode, message.data.playerId);
+            if (updatedRoom) {
+              clientData.playerId = message.data.playerId;
+              clientData.roomCode = message.data.roomCode;
+
+              const response: WSResponse = {
+                type: 'room_joined',
+                playerId: message.data.playerId,
+              };
+
+              ws.send(JSON.stringify(response));
+              broadcastRoomState(message.data.roomCode);
+            }
+            break;
+          }
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);

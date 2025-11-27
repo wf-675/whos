@@ -93,10 +93,16 @@ export const kickPlayerSchema = z.object({
   targetPlayerId: z.string(),
 });
 
+export const reconnectSchema = z.object({
+  roomCode: z.string().length(6),
+  playerId: z.string(),
+});
+
 // WebSocket message types
 export type WSMessage =
   | { type: 'create_room'; data: z.infer<typeof createRoomSchema> }
   | { type: 'join_room'; data: z.infer<typeof joinRoomSchema> }
+  | { type: 'reconnect'; data: z.infer<typeof reconnectSchema> }
   | { type: 'start_game' }
   | { type: 'send_message'; data: z.infer<typeof sendMessageSchema> }
   | { type: 'start_voting' }
@@ -106,6 +112,6 @@ export type WSMessage =
 
 export type WSResponse =
   | { type: 'room_created'; roomCode: string; playerId: string }
-  | { type: 'room_joined'; playerId: string }
+  | { type: 'room_joined'; playerId: string; roomCode?: string }
   | { type: 'room_state'; room: Room; playerId: string; playerWord: string | null }
   | { type: 'error'; message: string };

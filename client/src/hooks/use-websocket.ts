@@ -13,7 +13,9 @@ interface UseWebSocketResult {
 export function useWebSocket(): UseWebSocketResult {
   const [isConnected, setIsConnected] = useState(false);
   const [room, setRoom] = useState<Room | null>(null);
-  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [playerId, setPlayerId] = useState<string | null>(() => {
+    return localStorage.getItem('playerId');
+  });
   const [playerWord, setPlayerWord] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
@@ -28,6 +30,20 @@ export function useWebSocket(): UseWebSocketResult {
     ws.onopen = () => {
       setIsConnected(true);
       console.log('WebSocket connected');
+      
+      // Try to reconnect to previous session
+      const storedPlayerId = localStorage.getItem('playerId');
+      const storedRoomCode = localStorage.getItem('roomCode');
+      if (storedPlayerId && storedRoomCode) {
+        console.log('Attempting to reconnect with playerId:', storedPlayerId);
+        ws.send(JSON.stringify({
+          type: 'reconnect',
+          data: {
+            roomCode: storedRoomCode,
+            playerId: storedPlayerId,
+          }
+        }));
+      }
     };
 
     ws.onmessage = (event) => {
@@ -37,9 +53,16 @@ export function useWebSocket(): UseWebSocketResult {
         switch (response.type) {
           case 'room_created':
             setPlayerId(response.playerId);
+            localStorage.setItem('playerId', response.playerId);
+            localStorage.setItem('roomCode', response.roomCode);
             break;
           case 'room_joined':
             setPlayerId(response.playerId);
+            // Store for reconnection
+            if (response.roomCode) {
+              localStorage.setItem('playerId', response.playerId);
+              localStorage.setItem('roomCode', response.roomCode);
+            }
             break;
           case 'room_state':
             setRoom(response.room);

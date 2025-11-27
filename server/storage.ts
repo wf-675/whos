@@ -14,6 +14,7 @@ export interface IStorage {
   submitVote(roomCode: string, playerId: string, targetPlayerId: string): { room: Room; allVoted: boolean } | undefined;
   startNextRound(roomCode: string): Room | undefined;
   kickPlayer(roomCode: string, targetPlayerId: string): Room | undefined;
+  reconnectPlayer(roomCode: string, playerId: string): Room | undefined;
 }
 
 export class MemStorage implements IStorage {
@@ -272,20 +273,34 @@ export class MemStorage implements IStorage {
     // Remove player from room
     room.players = room.players.filter(p => p.id !== targetPlayerId);
 
-    // Reset to lobby phase when a player is kicked
-    room.phase = 'lobby';
-    room.currentWord = undefined;
-    room.oddOneOutId = undefined;
-    room.timerEndsAt = undefined;
-    room.messages = [];
-    room.votesReadyCount = 0;
-    room.roundNumber = 1;
+    // If kicked during game, reset to lobby
+    if (room.phase !== 'lobby') {
+      room.phase = 'lobby';
+      room.currentWord = undefined;
+      room.oddOneOutId = undefined;
+      room.timerEndsAt = undefined;
+      room.messages = [];
+      room.votesReadyCount = 0;
+      room.roundNumber = 1;
 
-    // Reset all players' votes
-    room.players.forEach((player) => {
-      player.votedFor = undefined;
-    });
+      // Reset all players' votes
+      room.players.forEach((player) => {
+        player.votedFor = undefined;
+      });
+    }
 
+    return room;
+  }
+
+  reconnectPlayer(roomCode: string, playerId: string): Room | undefined {
+    const room = this.rooms.get(roomCode);
+    if (!room) return undefined;
+
+    const player = room.players.find(p => p.id === playerId);
+    if (!player) return undefined;
+
+    // Reconnect player
+    player.isConnected = true;
     return room;
   }
 }

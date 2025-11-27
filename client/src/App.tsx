@@ -8,6 +8,7 @@ import HomePage from "@/pages/HomePage";
 import LobbyPage from "@/pages/LobbyPage";
 import GamePage from "@/pages/GamePage";
 import ProfilePage from "@/pages/ProfilePage";
+import InfoPage from "@/pages/InfoPage";
 import { Header } from "@/components/Header";
 import { Loader2 } from "lucide-react";
 
@@ -31,6 +32,10 @@ function GameApp() {
     <Switch>
       <Route path="/profile">
         <ProfilePage />
+      </Route>
+      
+      <Route path="/info">
+        <InfoPage />
       </Route>
       
       <Route path="/">

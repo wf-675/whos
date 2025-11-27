@@ -16,6 +16,7 @@ export interface IStorage {
   kickPlayer(roomCode: string, targetPlayerId: string): Room | undefined;
   reconnectPlayer(roomCode: string, playerId: string): Room | undefined;
   deleteRoom(code: string): void;
+  updateSettings(roomCode: string, settings: { allowOddOneOutReveal?: boolean; enableTimer?: boolean; category?: string }): Room | undefined;
 }
 
 export class MemStorage implements IStorage {
@@ -144,8 +145,11 @@ export class MemStorage implements IStorage {
     const room = this.rooms.get(roomCode);
     if (!room || room.phase !== 'lobby' || room.players.length < 3) return undefined;
 
-    // Select random word pair (avoid duplicates)
-    const wordPair = this.getRandomWordPair(room.usedWords || []);
+    // Use category from settings if specified
+    const category = room.settings?.category;
+    const wordPair = category && category !== "random" 
+      ? this.getRandomWordPairFromCategory(category, room.usedWords || [])
+      : this.getRandomWordPair(room.usedWords || []);
     room.currentWord = wordPair;
     
     // Add to used words
@@ -160,9 +164,13 @@ export class MemStorage implements IStorage {
       player.votedFor = undefined;
     });
 
-            // Start discussion phase with timer (3 minutes)
+            // Start discussion phase with timer (if enabled)
             room.phase = 'discussion';
-            room.timerEndsAt = Date.now() + 180000; // 3 minutes
+            if (room.settings?.enableTimer !== false) {
+              room.timerEndsAt = Date.now() + 180000; // 3 minutes
+            } else {
+              room.timerEndsAt = undefined;
+            }
             room.messages = [];
             room.votesReadyCount = 0;
             room.votesReadyPlayers = [];
@@ -257,11 +265,18 @@ export class MemStorage implements IStorage {
     const room = this.rooms.get(roomCode);
     if (!room || room.phase !== 'reveal') return undefined;
 
-    // Select new word pair
-    const wordPair = this.getRandomWordPair();
+    // Use category from settings if specified
+    const category = room.settings?.category;
+    const wordPair = category && category !== "random" 
+      ? this.getRandomWordPairFromCategory(category, room.usedWords || [])
+      : this.getRandomWordPair(room.usedWords || []);
     room.currentWord = wordPair;
 
-    // Select new random odd one out (prevent repeats)
+    // Add to used words
+    if (!room.usedWords) room.usedWords = [];
+    room.usedWords.push(wordPair.normal);
+
+    // Select new random odd one out
     room.oddOneOutId = this.getRandomOddOneOut(roomCode, room.players);
 
     // Reset players (don't mark isOddOneOut)
@@ -269,13 +284,17 @@ export class MemStorage implements IStorage {
       player.votedFor = undefined;
     });
 
-            // Start discussion phase with 3 minutes
-            room.phase = 'discussion';
-            room.timerEndsAt = Date.now() + 180000; // 3 minutes
-            room.messages = [];
-            room.roundNumber++;
-            room.votesReadyCount = 0;
-            room.votesReadyPlayers = [];
+    // Start discussion phase with timer (if enabled)
+    room.phase = 'discussion';
+    if (room.settings?.enableTimer !== false) {
+      room.timerEndsAt = Date.now() + 180000; // 3 minutes
+    } else {
+      room.timerEndsAt = undefined;
+    }
+    room.messages = [];
+    room.roundNumber++;
+    room.votesReadyCount = 0;
+    room.votesReadyPlayers = [];
 
     return room;
   }
@@ -321,6 +340,30 @@ export class MemStorage implements IStorage {
 
   deleteRoom(code: string): void {
     this.rooms.delete(code);
+  }
+
+  updateSettings(roomCode: string, settings: { allowOddOneOutReveal?: boolean; enableTimer?: boolean; category?: string }): Room | undefined {
+    const room = this.rooms.get(roomCode);
+    if (!room) return undefined;
+
+    if (!room.settings) {
+      room.settings = {
+        allowOddOneOutReveal: false,
+        enableTimer: true,
+      };
+    }
+
+    if (settings.allowOddOneOutReveal !== undefined) {
+      room.settings.allowOddOneOutReveal = settings.allowOddOneOutReveal;
+    }
+    if (settings.enableTimer !== undefined) {
+      room.settings.enableTimer = settings.enableTimer;
+    }
+    if (settings.category !== undefined) {
+      room.settings.category = settings.category || undefined;
+    }
+
+    return room;
   }
 }
 

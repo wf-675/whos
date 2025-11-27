@@ -66,15 +66,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     clients.forEach((client) => {
       if (client.roomCode === roomCode && client.ws.readyState === WebSocket.OPEN) {
         const isOddOneOut = room.oddOneOutId === client.playerId;
-        const playerWord = isOddOneOut 
-          ? room.currentWord?.odd 
-          : room.currentWord?.normal;
+        // Check if odd one out should know their role
+        const shouldReveal = room.settings?.allowOddOneOutReveal || false;
+        const playerWord = room.phase === 'lobby' 
+          ? null 
+          : (isOddOneOut && shouldReveal 
+            ? room.currentWord?.odd 
+            : room.currentWord?.normal);
 
         const response: WSResponse = {
           type: 'room_state',
           room,
           playerId: client.playerId!,
-          playerWord: room.phase === 'lobby' ? null : (playerWord || null),
+          playerWord: playerWord || null,
         };
 
         client.ws.send(JSON.stringify(response));
@@ -407,6 +411,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               ws.send(JSON.stringify(response));
               broadcastRoomState(message.data.roomCode);
+            }
+            break;
+          }
+
+          case 'update_settings': {
+            if (!clientData.roomCode || !clientData.playerId) break;
+            const room = storage.getRoom(clientData.roomCode);
+            const currentPlayer = room?.players.find(p => p.id === clientData.playerId);
+
+            if (room && currentPlayer?.isHost && room.phase === 'lobby') {
+              storage.updateSettings(clientData.roomCode, message.data);
+              broadcastRoomState(clientData.roomCode);
             }
             break;
           }

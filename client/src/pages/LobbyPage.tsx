@@ -2,10 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlayerCard } from "@/components/PlayerCard";
-import { Copy, Play, Home, X, Settings } from "lucide-react";
+import { Copy, Play, Home, X } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
+import { GameSettings } from "@/components/GameSettings";
 import type { Room } from "@shared/schema";
 import type { WSMessage } from "@shared/schema";
 
@@ -120,7 +121,10 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
           </div>
 
           {isHost && (
-            <div className="text-center">
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center gap-3">
+                <GameSettings room={room} isHost={isHost} onSendMessage={onSendMessage} />
+              </div>
               {!canStart && (
                 <p className="text-muted-foreground mb-4 text-lg">
                   محتاج 3 لاعبين على الأقل عشان نبدأ

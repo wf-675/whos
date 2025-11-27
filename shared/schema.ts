@@ -105,6 +105,12 @@ export const reconnectSchema = z.object({
 });
 
 // WebSocket message types
+export const updateSettingsSchema = z.object({
+  allowOddOneOutReveal: z.boolean().optional(),
+  enableTimer: z.boolean().optional(),
+  category: z.string().optional(),
+});
+
 export type WSMessage =
   | { type: 'create_room'; data: z.infer<typeof createRoomSchema> }
   | { type: 'join_room'; data: z.infer<typeof joinRoomSchema> }
@@ -117,7 +123,8 @@ export type WSMessage =
   | { type: 'kick_player'; data: z.infer<typeof kickPlayerSchema> }
   | { type: 'leave_room' }
   | { type: 'end_game' }
-  | { type: 'return_to_lobby' };
+  | { type: 'return_to_lobby' }
+  | { type: 'update_settings'; data: z.infer<typeof updateSettingsSchema> };
 
 export type WSResponse =
   | { type: 'room_created'; roomCode: string; playerId: string }

@@ -265,7 +265,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
               ✓ صوتك مسجل
             </Badge>
             <p className="text-muted-foreground mt-4">
-              استنى باقي اللاعبين... 👀
+              استنى باقي اللاعبين...
             </p>
           </div>
         ) : (
@@ -306,7 +306,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         <div className="text-center mb-8 animate-in fade-in slide-in-from-top-2">
           <Trophy className="w-24 h-24 mx-auto mb-4 text-primary animate-bounce" />
           <h2 className="text-4xl font-bold mb-4">
-            {playersWon ? "🎉 اللعبة لكم! 🎉" : "😅 فاتتكم هذي!"}
+            {playersWon ? "اللعبة لكم!" : "فاتتكم هذي!"}
           </h2>
           
           <Card className="max-w-md mx-auto mb-6">

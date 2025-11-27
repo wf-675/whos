@@ -24,8 +24,8 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    // Show alert if user navigates away during game
-    if (room && playerId && location === "/") {
+    // Show alert if user navigates away during game (but not in lobby)
+    if (room && playerId && room.phase !== 'lobby' && (location === "/" || location === "/info")) {
       setShowGameAlert(true);
     } else {
       setShowGameAlert(false);
@@ -55,8 +55,8 @@ export function Header() {
                 الرئيسية
               </Button>
             </Link>
-            <Link href="/profile">
-              <Button variant={location === "/profile" ? "default" : "ghost"} size="sm" className="hidden sm:flex">
+            <Link href="/info">
+              <Button variant={location === "/info" ? "default" : "ghost"} size="sm" className="hidden sm:flex">
                 <Info className="w-4 h-4 ml-2" />
                 معلومات
               </Button>
@@ -100,8 +100,9 @@ export function Header() {
       </header>
       {showGameAlert && (
         <div className="bg-primary/10 border-b border-primary/20 px-4 py-2 text-center">
-          <p className="text-sm text-primary font-semibold">
-            ⚠️ أنت في لعبة نشطة! <button onClick={() => window.history.back()} className="underline hover:no-underline">ارجع للعبة</button>
+          <p className="text-sm text-primary font-semibold flex items-center justify-center gap-2">
+            <span className="text-destructive">!</span>
+            أنت في لعبة نشطة! <button onClick={() => window.history.back()} className="underline hover:no-underline">ارجع للعبة</button>
           </p>
         </div>
       )}

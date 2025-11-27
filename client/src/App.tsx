@@ -3,13 +3,17 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { Route, Switch, useLocation } from "wouter";
 import HomePage from "@/pages/HomePage";
 import LobbyPage from "@/pages/LobbyPage";
 import GamePage from "@/pages/GamePage";
+import ProfilePage from "@/pages/ProfilePage";
+import { Header } from "@/components/Header";
 import { Loader2 } from "lucide-react";
 
 function GameApp() {
   const { isConnected, room, playerId, playerWord, sendMessage } = useWebSocket();
+  const [location] = useLocation();
 
   if (!isConnected) {
     return (
@@ -23,15 +27,26 @@ function GameApp() {
     );
   }
 
-  if (!room || !playerId) {
-    return <HomePage onSendMessage={sendMessage} />;
-  }
-
-  if (room.phase === 'lobby') {
-    return <LobbyPage room={room} playerId={playerId} onSendMessage={sendMessage} />;
-  }
-
-  return <GamePage room={room} playerId={playerId} playerWord={playerWord} onSendMessage={sendMessage} />;
+  return (
+    <Switch>
+      <Route path="/profile">
+        <ProfilePage />
+      </Route>
+      
+      <Route path="/">
+        {!room || !playerId ? (
+          <>
+            <Header />
+            <HomePage onSendMessage={sendMessage} />
+          </>
+        ) : room.phase === 'lobby' ? (
+          <LobbyPage room={room} playerId={playerId} onSendMessage={sendMessage} />
+        ) : (
+          <GamePage room={room} playerId={playerId} playerWord={playerWord} onSendMessage={sendMessage} />
+        )}
+      </Route>
+    </Switch>
+  );
 }
 
 function App() {

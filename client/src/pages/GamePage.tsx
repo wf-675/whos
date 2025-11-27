@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
 import { soundManager } from "@/lib/sounds";
+import { Header } from "@/components/Header";
 import type { Room } from "@shared/schema";
 import type { WSMessage } from "@shared/schema";
 
@@ -26,10 +27,10 @@ interface GamePageProps {
 export default function GamePage({ room, playerId, playerWord, onSendMessage }: GamePageProps) {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [showWord, setShowWord] = useState(false);
-  const [votesReady, setVotesReady] = useState(0);
   const [previousPhase, setPreviousPhase] = useState(room.phase);
   const currentPlayer = room.players.find(p => p.id === playerId);
   const isHost = currentPlayer?.isHost || false;
+  const hasVotedReady = room.votesReadyPlayers?.includes(playerId) || false;
 
   // Play sounds when phase changes
   useEffect(() => {
@@ -45,7 +46,8 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   
   const hasVoted = currentPlayer?.votedFor !== undefined;
   const majorityNeeded = Math.ceil(room.players.length / 2);
-  const votesReadyPercentage = Math.round((votesReady / majorityNeeded) * 100);
+  const votesReadyCount = room.votesReadyCount || 0;
+  const votesReadyPercentage = Math.round((votesReadyCount / majorityNeeded) * 100);
   const isOddOneOut = playerId === room.oddOneOutId;
 
   const handleVote = () => {
@@ -59,8 +61,8 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   };
 
   const handleStartVoting = () => {
+    if (hasVotedReady) return; // Already voted
     soundManager.playClick();
-    setVotesReady(votesReady + 1);
     onSendMessage({
       type: 'start_voting'
     });
@@ -87,18 +89,19 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         <Button
           size="lg"
           onClick={handleStartVoting}
+          disabled={hasVotedReady}
           className="min-w-[200px] transition-transform hover:scale-105 active:scale-95"
           data-testid="button-start-voting"
         >
           <Vote className="w-5 h-5 ml-2" />
-          نبي نصوت
+          {hasVotedReady ? '✓ جاهز للتصويت' : 'نبي نصوت'}
         </Button>
       </div>
 
       <div className="max-w-md mx-auto mb-6 text-center">
         <div className="bg-card rounded-lg p-4 border border-border">
           <p className="text-sm font-semibold mb-2">
-            {votesReady} من {majorityNeeded} متأهبين للتصويت
+            {votesReadyCount} من {majorityNeeded} متأهبين للتصويت
           </p>
           <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
             <div 
@@ -106,7 +109,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
               style={{ width: `${votesReadyPercentage}%` }}
             ></div>
           </div>
-          {votesReady >= majorityNeeded && room.phase === 'discussion' && (
+          {votesReadyCount >= majorityNeeded && room.phase === 'discussion' && (
             <p className="text-xs text-primary mt-2 font-semibold">
               الأغلبية متجهزة للتصويت!
             </p>
@@ -379,11 +382,12 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <Header />
+      {/* Game Header */}
+      <div className="border-b border-border bg-card/30">
+        <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="font-bold text-xl">الجولة {room.roundNumber}</h1>
+            <h1 className="font-bold text-lg">الجولة {room.roundNumber}</h1>
             <Badge className="text-sm">
               {room.phase === 'discussion' && 'النقاش'}
               {room.phase === 'voting' && 'التصويت'}
@@ -426,7 +430,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
           </Button>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
       <div className="p-4">

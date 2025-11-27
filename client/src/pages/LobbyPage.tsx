@@ -2,9 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlayerCard } from "@/components/PlayerCard";
-import { Copy, Play, Home, X } from "lucide-react";
+import { Copy, Play, Home, X, Settings } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { Header } from "@/components/Header";
 import type { Room } from "@shared/schema";
 import type { WSMessage } from "@shared/schema";
 
@@ -53,27 +54,7 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="font-bold text-xl">غرفة الانتظار</h1>
-          <div className="flex gap-2">
-            <Button 
-              variant="destructive"
-              size="sm"
-              onClick={() => {
-                onSendMessage({ type: 'leave_room' });
-                localStorage.removeItem('playerId');
-                localStorage.removeItem('roomCode');
-              }}
-              data-testid="button-leave-room"
-            >
-              <Home className="w-4 h-4 ml-2" />
-              خروج
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <div className="p-4">

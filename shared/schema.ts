@@ -66,7 +66,13 @@ export const roomSchema = z.object({
   roundNumber: z.number(),
   votes: z.record(z.string(), z.string()).optional(),
   votesReadyCount: z.number().default(0),
+  votesReadyPlayers: z.array(z.string()).default([]),
   usedWords: z.array(z.string()).default([]),
+  settings: z.object({
+    allowOddOneOutReveal: z.boolean().default(false),
+    enableTimer: z.boolean().default(true),
+    category: z.string().optional(),
+  }).optional(),
 });
 
 export type Room = z.infer<typeof roomSchema>;

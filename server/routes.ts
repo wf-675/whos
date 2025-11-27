@@ -238,9 +238,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           case 'start_voting': {
-            if (!clientData.roomCode) break;
+            if (!clientData.roomCode || !clientData.playerId) break;
 
-            const room = storage.moveToVotingPhase(clientData.roomCode);
+            const room = storage.moveToVotingPhase(clientData.roomCode, clientData.playerId);
             if (room && room.phase === 'voting') {
               const timer = roomTimers.get(clientData.roomCode);
               if (timer) {

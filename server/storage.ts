@@ -10,7 +10,7 @@ export interface IStorage {
   updatePlayerConnection(roomCode: string, playerId: string, isConnected: boolean): void;
   startGame(roomCode: string): Room | undefined;
   addMessage(roomCode: string, playerId: string, playerName: string, text: string): Room | undefined;
-  moveToVotingPhase(roomCode: string): Room | undefined;
+  moveToVotingPhase(roomCode: string, playerId: string): Room | undefined;
   submitVote(roomCode: string, playerId: string, targetPlayerId: string): { room: Room; allVoted: boolean } | undefined;
   startNextRound(roomCode: string): Room | undefined;
   kickPlayer(roomCode: string, targetPlayerId: string): Room | undefined;
@@ -160,21 +160,31 @@ export class MemStorage implements IStorage {
       player.votedFor = undefined;
     });
 
-    // Start discussion phase with timer (3 minutes)
-    room.phase = 'discussion';
-    room.timerEndsAt = Date.now() + 180000; // 3 minutes
-    room.messages = [];
-    room.votesReadyCount = 0;
+            // Start discussion phase with timer (3 minutes)
+            room.phase = 'discussion';
+            room.timerEndsAt = Date.now() + 180000; // 3 minutes
+            room.messages = [];
+            room.votesReadyCount = 0;
+            room.votesReadyPlayers = [];
 
     return room;
   }
 
-  moveToVotingPhase(roomCode: string): Room | undefined {
+  moveToVotingPhase(roomCode: string, playerId: string): Room | undefined {
     const room = this.rooms.get(roomCode);
     if (!room || room.phase !== 'discussion') return undefined;
 
-    // Increment vote count for current player
-    room.votesReadyCount = (room.votesReadyCount || 0) + 1;
+    // Initialize arrays if needed
+    if (!room.votesReadyPlayers) room.votesReadyPlayers = [];
+    
+    // Check if player already voted
+    if (room.votesReadyPlayers.includes(playerId)) {
+      return room; // Already voted, no change
+    }
+
+    // Add player to ready list
+    room.votesReadyPlayers.push(playerId);
+    room.votesReadyCount = room.votesReadyPlayers.length;
     
     // Check if majority is ready (more than half)
     const majorityNeeded = Math.ceil(room.players.length / 2);
@@ -188,6 +198,7 @@ export class MemStorage implements IStorage {
     room.timerEndsAt = Date.now() + 60000; // 1 minute for voting
     room.players.forEach(p => p.votedFor = undefined); // Reset votes
     room.votesReadyCount = 0; // Reset for next round
+    room.votesReadyPlayers = []; // Reset ready players
 
     return room;
   }
@@ -258,12 +269,13 @@ export class MemStorage implements IStorage {
       player.votedFor = undefined;
     });
 
-    // Start discussion phase with 3 minutes
-    room.phase = 'discussion';
-    room.timerEndsAt = Date.now() + 180000; // 3 minutes
-    room.messages = [];
-    room.roundNumber++;
-    room.votesReadyCount = 0;
+            // Start discussion phase with 3 minutes
+            room.phase = 'discussion';
+            room.timerEndsAt = Date.now() + 180000; // 3 minutes
+            room.messages = [];
+            room.roundNumber++;
+            room.votesReadyCount = 0;
+            room.votesReadyPlayers = [];
 
     return room;
   }
@@ -281,9 +293,10 @@ export class MemStorage implements IStorage {
       room.currentWord = undefined;
       room.oddOneOutId = undefined;
       room.timerEndsAt = undefined;
-      room.messages = [];
-      room.votesReadyCount = 0;
-      room.roundNumber = 1;
+            room.messages = [];
+            room.votesReadyCount = 0;
+            room.votesReadyPlayers = [];
+            room.roundNumber = 1;
 
       // Reset all players' votes
       room.players.forEach((player) => {

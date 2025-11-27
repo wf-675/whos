@@ -72,8 +72,9 @@ export class MemStorage implements IStorage {
   }
 
   private getRandomOddOneOut(roomCode: string, players: Player[]): string {
-    const oddIndex = Math.floor(Math.random() * players.length);
-    return players[oddIndex].id;
+    // Completely random selection - no patterns
+    const randomIndex = Math.floor(Math.random() * players.length);
+    return players[randomIndex].id;
   }
 
   createRoom(hostId: string, hostName: string): Room {

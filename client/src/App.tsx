@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
@@ -8,15 +9,23 @@ import { Route, Switch } from "wouter";
 import HomePage from "@/pages/HomePage";
 import LobbyPage from "@/pages/LobbyPage";
 import GamePage from "@/pages/GamePage";
-import AuthPage from "@/pages/AuthPage";
 import ProfilePage from "@/pages/ProfilePage";
 import { Loader2 } from "lucide-react";
 
 function GameApp() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, login } = useAuth();
   const { isConnected, room, playerId, playerWord, sendMessage } = useWebSocket();
 
-  // Show auth page if not logged in
+  // Auto-login with saved name
+  useEffect(() => {
+    if (!authLoading && !user) {
+      const savedName = localStorage.getItem('playerName');
+      if (savedName) {
+        login(savedName.toLowerCase().replace(/\s/g, '_'), savedName);
+      }
+    }
+  }, [authLoading, user, login]);
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -26,10 +35,6 @@ function GameApp() {
         </div>
       </div>
     );
-  }
-
-  if (!user) {
-    return <AuthPage />;
   }
 
   // Profile page route - always accessible

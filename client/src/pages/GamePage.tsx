@@ -4,7 +4,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlayerCard } from "@/components/PlayerCard";
 import { Timer } from "@/components/Timer";
-import { Eye, EyeOff, Trophy, RefreshCw, Send, Vote, ChevronRight, Home } from "lucide-react";
+import { Eye, EyeOff, Trophy, RefreshCw, Send, Vote, ChevronRight, Home, MoreVertical, X, RotateCcw } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
 import { soundManager } from "@/lib/sounds";
 import type { Room } from "@shared/schema";
@@ -22,6 +28,8 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   const [showWord, setShowWord] = useState(false);
   const [votesReady, setVotesReady] = useState(0);
   const [previousPhase, setPreviousPhase] = useState(room.phase);
+  const currentPlayer = room.players.find(p => p.id === playerId);
+  const isHost = currentPlayer?.isHost || false;
 
   // Play sounds when phase changes
   useEffect(() => {
@@ -67,23 +75,23 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
 
   const renderDiscussionPhase = () => (
     <>
-      <div className="text-center mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
+      <div className="text-center mb-6">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <h2 className="text-4xl font-bold">💬 النقاش والحوار</h2>
+          <h2 className="text-3xl font-bold">النقاش والحوار</h2>
         </div>
-        <p className="text-muted-foreground text-lg">
+        <p className="text-muted-foreground">
           تحدثوا وافتكروا من الي برا السالفة
         </p>
       </div>
 
-      <div className="max-w-md mx-auto mb-8 text-center animate-in fade-in zoom-in duration-500">
+      <div className="max-w-md mx-auto mb-8 text-center">
         <Button
           size="lg"
           onClick={handleStartVoting}
-          className="min-w-[200px] h-14 text-lg transition-all hover:scale-110 hover:shadow-xl active:scale-95 animate-pulse-glow"
+          className="min-w-[200px] transition-transform hover:scale-105 active:scale-95"
           data-testid="button-start-voting"
         >
-          <Vote className="w-6 h-6 ml-2" />
+          <Vote className="w-5 h-5 ml-2" />
           نبي نصوت
         </Button>
       </div>
@@ -155,7 +163,34 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         <h2 className="text-2xl font-semibold mb-4">اللاعبون</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {room.players.map((player) => (
-            <PlayerCard key={player.id} player={player} />
+            <div key={player.id} className="relative">
+              <PlayerCard player={player} />
+              {isHost && !player.isHost && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 left-2 h-6 w-6 rounded-full"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem 
+                      onClick={() => onSendMessage({ 
+                        type: 'kick_player', 
+                        data: { targetPlayerId: player.id } 
+                      })}
+                      className="text-destructive"
+                    >
+                      <X className="w-4 h-4 ml-2" />
+                      طرد اللاعب
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           ))}
         </div>
       </div>
@@ -170,9 +205,9 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         )}
       </div>
 
-      <div className="text-center mb-8 animate-in fade-in zoom-in duration-500">
-        <h2 className="text-4xl font-bold mb-3 text-primary">⏰ وقت التصويت!</h2>
-        <p className="text-muted-foreground text-lg">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold mb-2">وقت التصويت!</h2>
+        <p className="text-muted-foreground">
           اختر الي برا السالفة عندك
         </p>
       </div>
@@ -180,21 +215,47 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
       <div className="max-w-4xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
           {room.players.map((player) => (
-            <PlayerCard
-              key={player.id}
-              player={player}
-              isSelected={selectedPlayerId === player.id}
-              onClick={() => !hasVoted && setSelectedPlayerId(player.id)}
-            />
+            <div key={player.id} className="relative">
+              <PlayerCard
+                player={player}
+                isSelected={selectedPlayerId === player.id}
+                onClick={() => !hasVoted && setSelectedPlayerId(player.id)}
+              />
+              {isHost && !player.isHost && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 left-2 h-6 w-6 rounded-full"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem 
+                      onClick={() => onSendMessage({ 
+                        type: 'kick_player', 
+                        data: { targetPlayerId: player.id } 
+                      })}
+                      className="text-destructive"
+                    >
+                      <X className="w-4 h-4 ml-2" />
+                      طرد اللاعب
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           ))}
         </div>
 
         {hasVoted ? (
-          <div className="text-center animate-bounce-in">
-            <Badge variant="secondary" className="text-xl px-8 py-3 animate-bounce shadow-lg">
-              ✓ صوتك مسجل بنجاح
+          <div className="text-center">
+            <Badge variant="secondary" className="text-lg px-6 py-2 animate-bounce">
+              ✓ صوتك مسجل
             </Badge>
-            <p className="text-muted-foreground mt-4 text-lg">
+            <p className="text-muted-foreground mt-4">
               استنى باقي اللاعبين... 👀
             </p>
           </div>
@@ -204,10 +265,10 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
               size="lg"
               onClick={handleVote}
               disabled={!selectedPlayerId}
-              className="min-w-[200px] h-14 text-lg transition-all hover:scale-110 hover:shadow-xl active:scale-95"
+              className="min-w-[200px] transition-transform hover:scale-105 active:scale-95"
               data-testid="button-submit-vote"
             >
-              <Send className="w-6 h-6 ml-2" />
+              <Send className="w-5 h-5 ml-2" />
               أؤكد اختياري
             </Button>
           </div>
@@ -318,9 +379,9 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="font-bold text-xl">الجولة {room.roundNumber}</h1>
@@ -330,19 +391,42 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
               {room.phase === 'reveal' && 'النتائج'}
             </Badge>
           </div>
-          <Button 
-            variant="destructive"
-            size="sm"
-            onClick={() => {
-              onSendMessage({ type: 'leave_room' });
-              localStorage.clear();
-              window.location.href = '/';
-            }}
-            data-testid="button-leave-game"
-          >
-            <Home className="w-4 h-4 ml-2" />
-            خروج
-          </Button>
+          <div className="flex gap-2">
+            {isHost && room.phase !== 'lobby' && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <MoreVertical className="w-4 h-4 ml-2" />
+                    خيارات المضيف
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onSendMessage({ type: 'return_to_lobby' })}>
+                    <RotateCcw className="w-4 h-4 ml-2" />
+                    الرجوع للوبي
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onSendMessage({ type: 'end_game' })}>
+                    <X className="w-4 h-4 ml-2" />
+                    إنهاء الجولة
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            <Button 
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                onSendMessage({ type: 'leave_room' });
+                localStorage.removeItem('playerId');
+                localStorage.removeItem('roomCode');
+                window.location.href = '/';
+              }}
+              data-testid="button-leave-game"
+            >
+              <Home className="w-4 h-4 ml-2" />
+              خروج
+            </Button>
+          </div>
         </div>
       </header>
 

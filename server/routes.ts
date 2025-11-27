@@ -302,11 +302,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (!clientData.roomCode || !clientData.playerId) break;
 
             const room = storage.getRoom(clientData.roomCode);
-            // Only host can kick players, and only in lobby phase
-            if (room && room.hostId === clientData.playerId && room.phase === 'lobby') {
+            // Host can kick players at any time
+            if (room && room.hostId === clientData.playerId) {
+              const wasInGame = room.phase !== 'lobby';
               const updatedRoom = storage.kickPlayer(clientData.roomCode, message.data.targetPlayerId);
               if (updatedRoom) {
+                // If kicked during game, return to lobby
+                if (wasInGame && updatedRoom.phase === 'lobby') {
+                  // Clear game state
+                  updatedRoom.currentWord = undefined;
+                  updatedRoom.oddOneOutId = undefined;
+                  updatedRoom.timerEndsAt = undefined;
+                  updatedRoom.messages = [];
+                  updatedRoom.votesReadyCount = 0;
+                  updatedRoom.players.forEach(p => {
+                    p.votedFor = undefined;
+                  });
+                }
+                
                 broadcastRoomState(clientData.roomCode);
+                
                 // Disconnect the kicked player's WebSocket
                 clients.forEach((client) => {
                   if (client.playerId === message.data.targetPlayerId && client.roomCode === clientData.roomCode) {
@@ -314,6 +329,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   }
                 });
               }
+            }
+            break;
+          }
+
+          case 'end_game': {
+            if (!clientData.roomCode || !clientData.playerId) break;
+
+            const room = storage.getRoom(clientData.roomCode);
+            // Only host can end game
+            if (room && room.hostId === clientData.playerId && room.phase !== 'lobby') {
+              room.phase = 'lobby';
+              room.currentWord = undefined;
+              room.oddOneOutId = undefined;
+              room.timerEndsAt = undefined;
+              room.messages = [];
+              room.votesReadyCount = 0;
+              room.players.forEach(p => {
+                p.votedFor = undefined;
+              });
+              broadcastRoomState(clientData.roomCode);
+            }
+            break;
+          }
+
+          case 'return_to_lobby': {
+            if (!clientData.roomCode || !clientData.playerId) break;
+
+            const room = storage.getRoom(clientData.roomCode);
+            // Only host can return to lobby
+            if (room && room.hostId === clientData.playerId && room.phase !== 'lobby') {
+              room.phase = 'lobby';
+              room.currentWord = undefined;
+              room.oddOneOutId = undefined;
+              room.timerEndsAt = undefined;
+              room.messages = [];
+              room.votesReadyCount = 0;
+              room.players.forEach(p => {
+                p.votedFor = undefined;
+              });
+              broadcastRoomState(clientData.roomCode);
             }
             break;
           }
@@ -361,6 +416,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             const room = storage.getRoom(clientData.roomCode);
             if (room) {
+              const wasHost = room.hostId === clientData.playerId;
+              const wasInGame = room.phase !== 'lobby';
+              
               // Remove player from room
               room.players = room.players.filter(p => p.id !== clientData.playerId);
 
@@ -369,8 +427,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 storage.deleteRoom(clientData.roomCode);
               } else {
                 // If host left, assign new host
-                if (room.hostId === clientData.playerId) {
+                if (wasHost) {
                   room.hostId = room.players[0].id;
+                  room.players[0].isHost = true;
+                }
+
+                // If someone left during game, return to lobby
+                if (wasInGame && room.phase !== 'lobby') {
+                  room.phase = 'lobby';
+                  room.currentWord = undefined;
+                  room.oddOneOutId = undefined;
+                  room.timerEndsAt = undefined;
+                  room.messages = [];
+                  room.votesReadyCount = 0;
+                  room.players.forEach(p => {
+                    p.votedFor = undefined;
+                  });
                 }
 
                 // Notify remaining players
@@ -378,10 +450,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             }
 
-            // Clear client data and reset to home
+            // Clear client data
             clientData.playerId = null;
             clientData.roomCode = null;
-            localStorage.clear();
             
             break;
           }

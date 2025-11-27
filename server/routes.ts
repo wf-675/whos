@@ -4,6 +4,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { randomUUID } from "crypto";
 import type { WSMessage, WSResponse } from "@shared/schema";
+import { getDb, schema } from "./db";
+import { eq } from "drizzle-orm";
 
 interface WSClient {
   ws: WebSocket;
@@ -14,6 +16,43 @@ interface WSClient {
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const db = getDb();
+
+  // Auth API routes - بدون database للبساطة
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { username, displayName } = req.body;
+      
+      if (!username || !displayName) {
+        return res.status(400).json({ message: 'Username and display name required' });
+      }
+
+      // Create guest user (no database needed)
+      const guestUser = {
+        id: randomUUID(),
+        username,
+        displayName,
+        gamesPlayed: 0,
+        gamesWon: 0,
+        totalPoints: 0,
+      };
+      
+      res.json(guestUser);
+    } catch (error) {
+      console.error('Auth error:', error);
+      res.status(500).json({ message: 'Authentication failed' });
+    }
+  });
+
+  // Get leaderboard - بسيط بدون database
+  app.get('/api/leaderboard', async (req, res) => {
+    res.json([]);
+  });
+
+  // User stats - بسيط بدون database
+  app.post('/api/user/stats', async (req, res) => {
+    res.json({ success: true });
+  });
 
   const clients = new Map<WebSocket, WSClient>();
 

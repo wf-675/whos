@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { PlayerCard } from "@/components/PlayerCard";
 import { Timer } from "@/components/Timer";
 import { Eye, EyeOff, Trophy, RefreshCw, Send, Vote, ChevronRight, Home } from "lucide-react";
 import { Link } from "wouter";
+import { soundManager } from "@/lib/sounds";
 import type { Room } from "@shared/schema";
 import type { WSMessage } from "@shared/schema";
 
@@ -20,6 +21,19 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [showWord, setShowWord] = useState(false);
   const [votesReady, setVotesReady] = useState(0);
+  const [previousPhase, setPreviousPhase] = useState(room.phase);
+
+  // Play sounds when phase changes
+  useEffect(() => {
+    if (previousPhase !== room.phase) {
+      if (room.phase === 'voting') {
+        soundManager.playGameStart();
+      } else if (room.phase === 'reveal') {
+        soundManager.playReveal();
+      }
+      setPreviousPhase(room.phase);
+    }
+  }, [room.phase, previousPhase]);
   
   const currentPlayer = room.players.find(p => p.id === playerId);
   const hasVoted = currentPlayer?.votedFor !== undefined;
@@ -29,6 +43,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
 
   const handleVote = () => {
     if (selectedPlayerId) {
+      soundManager.playSuccess();
       onSendMessage({
         type: 'vote',
         data: { targetPlayerId: selectedPlayerId }
@@ -37,6 +52,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   };
 
   const handleStartVoting = () => {
+    soundManager.playClick();
     setVotesReady(votesReady + 1);
     onSendMessage({
       type: 'start_voting'
@@ -51,23 +67,23 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
 
   const renderDiscussionPhase = () => (
     <>
-      <div className="text-center mb-6">
+      <div className="text-center mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <h2 className="text-3xl font-bold">النقاش والحوار</h2>
+          <h2 className="text-4xl font-bold">💬 النقاش والحوار</h2>
         </div>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-lg">
           تحدثوا وافتكروا من الي برا السالفة
         </p>
       </div>
 
-      <div className="max-w-md mx-auto mb-8 text-center">
+      <div className="max-w-md mx-auto mb-8 text-center animate-in fade-in zoom-in duration-500">
         <Button
           size="lg"
           onClick={handleStartVoting}
-          className="min-w-[200px] transition-transform hover:scale-105 active:scale-95"
+          className="min-w-[200px] h-14 text-lg transition-all hover:scale-110 hover:shadow-xl active:scale-95 animate-pulse-glow"
           data-testid="button-start-voting"
         >
-          <Vote className="w-5 h-5 ml-2" />
+          <Vote className="w-6 h-6 ml-2" />
           نبي نصوت
         </Button>
       </div>
@@ -154,9 +170,9 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         )}
       </div>
 
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2">وقت التصويت!</h2>
-        <p className="text-muted-foreground">
+      <div className="text-center mb-8 animate-in fade-in zoom-in duration-500">
+        <h2 className="text-4xl font-bold mb-3 text-primary">⏰ وقت التصويت!</h2>
+        <p className="text-muted-foreground text-lg">
           اختر الي برا السالفة عندك
         </p>
       </div>
@@ -174,11 +190,11 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         </div>
 
         {hasVoted ? (
-          <div className="text-center">
-            <Badge variant="secondary" className="text-lg px-6 py-2 animate-bounce">
-              ✓ صوتك مسجل
+          <div className="text-center animate-bounce-in">
+            <Badge variant="secondary" className="text-xl px-8 py-3 animate-bounce shadow-lg">
+              ✓ صوتك مسجل بنجاح
             </Badge>
-            <p className="text-muted-foreground mt-4">
+            <p className="text-muted-foreground mt-4 text-lg">
               استنى باقي اللاعبين... 👀
             </p>
           </div>
@@ -188,10 +204,10 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
               size="lg"
               onClick={handleVote}
               disabled={!selectedPlayerId}
-              className="min-w-[200px] transition-transform hover:scale-105 active:scale-95"
+              className="min-w-[200px] h-14 text-lg transition-all hover:scale-110 hover:shadow-xl active:scale-95"
               data-testid="button-submit-vote"
             >
-              <Send className="w-5 h-5 ml-2" />
+              <Send className="w-6 h-6 ml-2" />
               أؤكد اختياري
             </Button>
           </div>
@@ -302,9 +318,9 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
+      <header className="border-b border-border bg-card/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="font-bold text-xl">الجولة {room.roundNumber}</h1>

@@ -52,9 +52,9 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
+      <header className="border-b border-border bg-card/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="font-bold text-xl">غرفة الانتظار</h1>
           <div className="flex gap-2">
@@ -78,10 +78,10 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
       {/* Main Content */}
       <div className="p-4">
         <div className="max-w-4xl mx-auto py-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-4">اجمع الشلة</h2>
+          <div className="text-center mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+            <h2 className="text-3xl font-bold mb-6">اجمع الشلة 🎉</h2>
             
-            <Card className="max-w-md mx-auto hover:shadow-lg transition-shadow">
+            <Card className="max-w-md mx-auto hover:shadow-2xl transition-all hover:scale-[1.02] border-2">
               <CardHeader className="pb-3">
                 <p className="text-sm text-muted-foreground">كود الغرفة</p>
               </CardHeader>
@@ -119,8 +119,12 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {room.players.map((player) => (
-                <div key={player.id} className="relative">
+              {room.players.map((player, index) => (
+                <div 
+                  key={player.id} 
+                  className="relative animate-in fade-in slide-in-from-bottom-4"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
                   <PlayerCard player={player} />
                   {isHost && !player.isHost && (
                     <Button

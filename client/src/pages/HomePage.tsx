@@ -13,51 +13,32 @@ interface HomePageProps {
 }
 
 export default function HomePage({ onSendMessage }: HomePageProps) {
-  const { user, logout, login } = useAuth();
-  const [createName, setCreateName] = useState(() => {
-    const saved = localStorage.getItem('playerName');
-    return saved || user?.displayName || "";
-  });
-  const [joinName, setJoinName] = useState(() => {
-    const saved = localStorage.getItem('playerName');
-    return saved || user?.displayName || "";
-  });
+  const { user } = useAuth();
   const [joinCode, setJoinCode] = useState("");
-  const [showNamePrompt, setShowNamePrompt] = useState(!user && !localStorage.getItem('playerName'));
+  
+  // Get saved name - always use it
+  const playerName = user?.displayName || localStorage.getItem('playerName') || "";
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (createName.trim()) {
-      // Save name and login
-      localStorage.setItem('playerName', createName.trim());
-      if (!user) {
-        await login(createName.trim().toLowerCase().replace(/\s/g, '_'), createName.trim());
-      }
+    if (playerName) {
       onSendMessage({
         type: 'create_room',
-        data: { playerName: createName.trim() }
+        data: { playerName }
       });
-      setShowNamePrompt(false);
     }
   };
 
-  const handleJoin = async (e: React.FormEvent) => {
+  const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
-    const nameToUse = joinName.trim() || createName.trim();
-    if (nameToUse && joinCode.trim()) {
-      // Save name and login
-      localStorage.setItem('playerName', nameToUse);
-      if (!user) {
-        await login(nameToUse.toLowerCase().replace(/\s/g, '_'), nameToUse);
-      }
+    if (playerName && joinCode.trim()) {
       onSendMessage({
         type: 'join_room',
         data: {
-          playerName: nameToUse,
+          playerName,
           roomCode: joinCode.trim().toUpperCase()
         }
       });
-      setShowNamePrompt(false);
     }
   };
 
@@ -93,24 +74,16 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleCreate} className="space-y-4">
-                  {showNamePrompt && (
-                    <div>
-                      <Label htmlFor="create-name">اسمك</Label>
-                      <Input
-                        id="create-name"
-                        value={createName}
-                        onChange={(e) => setCreateName(e.target.value)}
-                        placeholder="أدخل اسمك"
-                        maxLength={20}
-                        className="mt-2"
-                        data-testid="input-create-name"
-                      />
+                  {playerName && (
+                    <div className="text-center p-3 bg-muted rounded-lg">
+                      <p className="text-sm text-muted-foreground">اللعب باسم:</p>
+                      <p className="font-semibold">{playerName}</p>
                     </div>
                   )}
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={showNamePrompt && !createName.trim()}
+                    disabled={!playerName}
                     data-testid="button-create-room"
                   >
                     إنشاء الغرفة
@@ -130,18 +103,10 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleJoin} className="space-y-4">
-                  {showNamePrompt && (
-                    <div>
-                      <Label htmlFor="join-name">اسمك</Label>
-                      <Input
-                        id="join-name"
-                        value={joinName}
-                        onChange={(e) => setJoinName(e.target.value)}
-                        placeholder="أدخل اسمك"
-                        maxLength={20}
-                        className="mt-2"
-                        data-testid="input-join-name"
-                      />
+                  {playerName && (
+                    <div className="text-center p-3 bg-muted rounded-lg">
+                      <p className="text-sm text-muted-foreground">اللعب باسم:</p>
+                      <p className="font-semibold">{playerName}</p>
                     </div>
                   )}
                   <div>
@@ -159,7 +124,7 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={joinCode.length !== 6}
+                    disabled={!playerName || joinCode.length !== 6}
                     data-testid="button-join-room"
                   >
                     الانضمام للغرفة

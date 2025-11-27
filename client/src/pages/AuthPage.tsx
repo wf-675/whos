@@ -7,8 +7,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, LogIn, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-export default function AuthPage() {
-  const [username, setUsername] = useState("");
+interface AuthPageProps {
+  onLogin?: () => void;
+}
+
+export default function AuthPage({ onLogin }: AuthPageProps) {
   const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -17,17 +20,21 @@ export default function AuthPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!username.trim() || !displayName.trim()) {
+    if (!displayName.trim()) {
       toast({
         title: "خطأ",
-        description: "الرجاء إدخال جميع البيانات",
+        description: "الرجاء إدخال اسمك",
         variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
-    const success = await login(username.trim().toLowerCase(), displayName.trim());
+    // Save name to localStorage
+    localStorage.setItem('playerName', displayName.trim());
+    // Login with name
+    const username = displayName.trim().toLowerCase().replace(/\s/g, '_');
+    const success = await login(username, displayName.trim());
     setIsLoading(false);
 
     if (success) {
@@ -35,6 +42,7 @@ export default function AuthPage() {
         title: "مرحباً! 👋",
         description: "تم تسجيل الدخول بنجاح",
       });
+      onLogin?.();
     } else {
       toast({
         title: "خطأ",
@@ -45,71 +53,44 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
-          <div className="inline-block mb-4 p-4 bg-primary/10 rounded-full">
-            <Sparkles className="w-12 h-12 text-primary" />
-          </div>
-          <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            مين برا السالفة؟
-          </h1>
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-bold mb-2">مين برا السالفة؟</h1>
           <p className="text-lg text-muted-foreground">
-            سجل دخول وابدأ اللعب الحين! ⚡
+            أدخل اسمك وابدأ اللعب! 🎮
           </p>
         </div>
 
-        <Card className="shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LogIn className="w-5 h-5" />
-              تسجيل دخول سريع
-            </CardTitle>
+            <CardTitle>أدخل اسمك</CardTitle>
             <CardDescription>
-              أدخل معلوماتك وابدأ اللعب - ما يحتاج إيميل! 🚀
+              مرة واحدة فقط - الاسم بيحفظ تلقائياً
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="username">اسم المستخدم</Label>
-                <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value.toLowerCase())}
-                  placeholder="مثال: cool_player"
-                  maxLength={20}
-                  className="mt-2"
-                  disabled={isLoading}
-                  autoComplete="username"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  اسم فريد بالإنجليزي بدون مسافات
-                </p>
-              </div>
-              
-              <div>
-                <Label htmlFor="displayName">الاسم الظاهر</Label>
+                <Label htmlFor="displayName">اسمك</Label>
                 <Input
                   id="displayName"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="مثال: أحمد الرياض"
+                  placeholder="مثال: أحمد"
                   maxLength={20}
                   className="mt-2"
                   disabled={isLoading}
                   autoComplete="name"
+                  autoFocus
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  الاسم الي بيشوفه اللاعبين الثانيين
-                </p>
               </div>
 
               <Button 
                 type="submit" 
                 className="w-full"
                 size="lg"
-                disabled={isLoading || !username.trim() || !displayName.trim()}
+                disabled={isLoading || !displayName.trim()}
               >
                 {isLoading ? (
                   <>
@@ -119,23 +100,13 @@ export default function AuthPage() {
                 ) : (
                   <>
                     <LogIn className="w-5 h-5 ml-2" />
-                    دخول
+                    ابدأ اللعب
                   </>
                 )}
               </Button>
             </form>
-
-            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-              <p className="text-xs text-muted-foreground text-center">
-                💡 نصيحة: اختر اسم مستخدم تتذكره عشان تقدر ترجع لحسابك في أي وقت
-              </p>
-            </div>
           </CardContent>
         </Card>
-
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          <p>مجرد ما تسجل دخول، بتقدر تلعب مع أصحابك مباشرة! 🎮</p>
-        </div>
       </div>
     </div>
   );

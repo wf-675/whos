@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,18 +10,24 @@ import HomePage from "@/pages/HomePage";
 import LobbyPage from "@/pages/LobbyPage";
 import GamePage from "@/pages/GamePage";
 import ProfilePage from "@/pages/ProfilePage";
+import AuthPage from "@/pages/AuthPage";
 import { Loader2 } from "lucide-react";
 
 function GameApp() {
   const { user, isLoading: authLoading, login } = useAuth();
   const { isConnected, room, playerId, playerWord, sendMessage } = useWebSocket();
+  const [showAuth, setShowAuth] = useState(false);
 
-  // Auto-login with saved name
+  // Check if user needs to login (first time only)
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading) {
       const savedName = localStorage.getItem('playerName');
-      if (savedName) {
+      if (savedName && !user) {
+        // Auto login with saved name
         login(savedName.toLowerCase().replace(/\s/g, '_'), savedName);
+      } else if (!savedName && !user) {
+        // Show auth page if no saved name
+        setShowAuth(true);
       }
     }
   }, [authLoading, user, login]);
@@ -35,6 +41,11 @@ function GameApp() {
         </div>
       </div>
     );
+  }
+
+  // Show auth page if no saved name
+  if (showAuth && !user) {
+    return <AuthPage onLogin={() => setShowAuth(false)} />;
   }
 
   // Profile page route - always accessible

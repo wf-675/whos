@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Plus } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import type { WSMessage } from "@shared/schema";
 
 interface HomePageProps {
@@ -13,29 +12,30 @@ interface HomePageProps {
 }
 
 export default function HomePage({ onSendMessage }: HomePageProps) {
-  const { user } = useAuth();
+  const [createName, setCreateName] = useState(() => localStorage.getItem('playerName') || "");
+  const [joinName, setJoinName] = useState(() => localStorage.getItem('playerName') || "");
   const [joinCode, setJoinCode] = useState("");
-  
-  // Get saved name - always use it
-  const playerName = user?.displayName || localStorage.getItem('playerName') || "";
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (playerName) {
+    if (createName.trim()) {
+      localStorage.setItem('playerName', createName.trim());
       onSendMessage({
         type: 'create_room',
-        data: { playerName }
+        data: { playerName: createName.trim() }
       });
     }
   };
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (playerName && joinCode.trim()) {
+    const nameToUse = joinName.trim() || createName.trim();
+    if (nameToUse && joinCode.trim()) {
+      localStorage.setItem('playerName', nameToUse);
       onSendMessage({
         type: 'join_room',
         data: {
-          playerName,
+          playerName: nameToUse,
           roomCode: joinCode.trim().toUpperCase()
         }
       });
@@ -74,16 +74,22 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleCreate} className="space-y-4">
-                  {playerName && (
-                    <div className="text-center p-3 bg-muted rounded-lg">
-                      <p className="text-sm text-muted-foreground">اللعب باسم:</p>
-                      <p className="font-semibold">{playerName}</p>
-                    </div>
-                  )}
+                  <div>
+                    <Label htmlFor="create-name">اسمك</Label>
+                    <Input
+                      id="create-name"
+                      value={createName}
+                      onChange={(e) => setCreateName(e.target.value)}
+                      placeholder="أدخل اسمك"
+                      maxLength={20}
+                      className="mt-2"
+                      data-testid="input-create-name"
+                    />
+                  </div>
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={!playerName}
+                    disabled={!createName.trim()}
                     data-testid="button-create-room"
                   >
                     إنشاء الغرفة
@@ -103,12 +109,18 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleJoin} className="space-y-4">
-                  {playerName && (
-                    <div className="text-center p-3 bg-muted rounded-lg">
-                      <p className="text-sm text-muted-foreground">اللعب باسم:</p>
-                      <p className="font-semibold">{playerName}</p>
-                    </div>
-                  )}
+                  <div>
+                    <Label htmlFor="join-name">اسمك</Label>
+                    <Input
+                      id="join-name"
+                      value={joinName}
+                      onChange={(e) => setJoinName(e.target.value)}
+                      placeholder="أدخل اسمك"
+                      maxLength={20}
+                      className="mt-2"
+                      data-testid="input-join-name"
+                    />
+                  </div>
                   <div>
                     <Label htmlFor="join-code">كود الغرفة</Label>
                     <Input
@@ -124,7 +136,7 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={!playerName || joinCode.length !== 6}
+                    disabled={!joinName.trim() || joinCode.length !== 6}
                     data-testid="button-join-room"
                   >
                     الانضمام للغرفة

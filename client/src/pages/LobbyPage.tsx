@@ -65,7 +65,6 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
                 onSendMessage({ type: 'leave_room' });
                 localStorage.removeItem('playerId');
                 localStorage.removeItem('roomCode');
-                window.location.href = '/';
               }}
               data-testid="button-leave-room"
             >

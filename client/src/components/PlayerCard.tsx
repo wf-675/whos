@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Crown, WifiOff, Check } from "lucide-react";
+import { Crown, WifiOff } from "lucide-react";
 import type { Player } from "@shared/schema";
 
 interface PlayerCardProps {
@@ -19,36 +19,23 @@ export function PlayerCard({ player, isSelected, onClick, showVote, votedFor, pl
   return (
     <Card
       className={`
-        p-4 relative cursor-pointer transition-all duration-300 overflow-hidden
-        ${isSelected ? 'ring-4 ring-primary shadow-2xl scale-110 bg-primary/5' : 'hover:scale-105 hover:shadow-lg'}
+        p-4 relative hover-elevate cursor-pointer transition-all
+        ${isSelected ? 'ring-4 ring-primary' : ''}
         ${!player.isConnected ? 'opacity-50' : ''}
-        ${onClick ? 'hover:border-primary' : ''}
       `}
       onClick={onClick}
       data-testid={`card-player-${player.id}`}
     >
-      {isSelected && (
-        <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-1 animate-bounce z-10">
-          <Check className="w-4 h-4" />
-        </div>
-      )}
-      
       {player.isHost && (
-        <div className="absolute top-2 left-2 z-10">
-          <Crown className="w-5 h-5 text-primary fill-primary animate-pulse" data-testid="icon-host" />
+        <div className="absolute top-2 left-2">
+          <Crown className="w-5 h-5 text-primary fill-primary" data-testid="icon-host" />
         </div>
       )}
       
       <div className="flex flex-col items-center gap-3">
         <div className="relative">
-          <Avatar className={`
-            w-16 h-16 transition-all duration-300
-            ${isSelected ? 'ring-4 ring-white shadow-xl' : ''}
-          `}>
-            <AvatarFallback className={`
-              text-lg font-bold transition-colors
-              ${isSelected ? 'bg-primary text-white' : 'bg-primary/10 text-primary'}
-            `}>
+          <Avatar className="w-16 h-16">
+            <AvatarFallback className="text-lg font-bold bg-primary/10 text-primary">
               {initials}
             </AvatarFallback>
           </Avatar>

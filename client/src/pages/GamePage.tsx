@@ -411,20 +411,19 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <Button 
-              variant="destructive"
-              size="sm"
-              onClick={() => {
-                onSendMessage({ type: 'leave_room' });
-                localStorage.removeItem('playerId');
-                localStorage.removeItem('roomCode');
-                window.location.href = '/';
-              }}
-              data-testid="button-leave-game"
-            >
-              <Home className="w-4 h-4 ml-2" />
-              خروج
-            </Button>
+          <Button 
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              onSendMessage({ type: 'leave_room' });
+              localStorage.removeItem('playerId');
+              localStorage.removeItem('roomCode');
+            }}
+            data-testid="button-leave-game"
+          >
+            <Home className="w-4 h-4 ml-2" />
+            خروج
+          </Button>
           </div>
         </div>
       </header>

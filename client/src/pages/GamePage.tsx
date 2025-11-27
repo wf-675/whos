@@ -43,7 +43,6 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
     }
   }, [room.phase, previousPhase]);
   
-  const currentPlayer = room.players.find(p => p.id === playerId);
   const hasVoted = currentPlayer?.votedFor !== undefined;
   const majorityNeeded = Math.ceil(room.players.length / 2);
   const votesReadyPercentage = Math.round((votesReady / majorityNeeded) * 100);

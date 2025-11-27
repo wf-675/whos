@@ -231,6 +231,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             break;
           }
+
+          case 'kick_player': {
+            if (!clientData.roomCode || !clientData.playerId) break;
+
+            const room = storage.getRoom(clientData.roomCode);
+            // Only host can kick players
+            if (room && room.hostId === clientData.playerId) {
+              const updatedRoom = storage.kickPlayer(clientData.roomCode, message.data.targetPlayerId);
+              if (updatedRoom) {
+                broadcastRoomState(clientData.roomCode);
+                // Disconnect the kicked player's WebSocket
+                clients.forEach((client) => {
+                  if (client.playerId === message.data.targetPlayerId && client.roomCode === clientData.roomCode) {
+                    client.ws.close();
+                  }
+                });
+              }
+            }
+            break;
+          }
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);

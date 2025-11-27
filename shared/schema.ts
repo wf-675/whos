@@ -89,6 +89,10 @@ export const voteSchema = z.object({
   targetPlayerId: z.string(),
 });
 
+export const kickPlayerSchema = z.object({
+  targetPlayerId: z.string(),
+});
+
 // WebSocket message types
 export type WSMessage =
   | { type: 'create_room'; data: z.infer<typeof createRoomSchema> }
@@ -97,7 +101,8 @@ export type WSMessage =
   | { type: 'send_message'; data: z.infer<typeof sendMessageSchema> }
   | { type: 'start_voting' }
   | { type: 'vote'; data: z.infer<typeof voteSchema> }
-  | { type: 'next_round' };
+  | { type: 'next_round' }
+  | { type: 'kick_player'; data: z.infer<typeof kickPlayerSchema> };
 
 export type WSResponse =
   | { type: 'room_created'; roomCode: string; playerId: string }

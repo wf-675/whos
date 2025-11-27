@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlayerCard } from "@/components/PlayerCard";
-import { Copy, Play, Home } from "lucide-react";
+import { Copy, Play, Home, X } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import type { Room } from "@shared/schema";
@@ -38,6 +38,17 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
 
   const handleStartGame = () => {
     onSendMessage({ type: 'start_game' });
+  };
+
+  const handleKickPlayer = (targetPlayerId: string) => {
+    onSendMessage({ 
+      type: 'kick_player', 
+      data: { targetPlayerId } 
+    });
+    toast({
+      title: "تم الطرد",
+      description: "تم طرد اللاعب من الغرفة",
+    });
   };
 
   return (
@@ -105,7 +116,20 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
             
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {room.players.map((player) => (
-                <PlayerCard key={player.id} player={player} />
+                <div key={player.id} className="relative">
+                  <PlayerCard player={player} />
+                  {isHost && !player.isHost && (
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-7 w-7 rounded-full"
+                      onClick={() => handleKickPlayer(player.id)}
+                      data-testid={`button-kick-player-${player.id}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  )}
+                </div>
               ))}
             </div>
           </div>

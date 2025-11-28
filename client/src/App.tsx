@@ -11,10 +11,20 @@ import ProfilePage from "@/pages/ProfilePage";
 import InfoPage from "@/pages/InfoPage";
 import { Header } from "@/components/Header";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 function GameApp() {
   const { isConnected, room, playerId, playerWord, sendMessage } = useWebSocket();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+
+  // Check if player name is set on first load
+  useEffect(() => {
+    const playerName = localStorage.getItem('playerName');
+    if (!playerName && location === '/') {
+      // Redirect to profile if no name is set
+      setLocation('/profile');
+    }
+  }, [location, setLocation]);
 
   if (!isConnected) {
     return (

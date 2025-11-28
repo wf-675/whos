@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { soundManager } from "@/lib/sounds";
 import { Header } from "@/components/Header";
 import type { Room } from "@shared/schema";
@@ -28,6 +28,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [showWord, setShowWord] = useState(false);
   const [previousPhase, setPreviousPhase] = useState(room.phase);
+  const [, setLocation] = useLocation();
   const currentPlayer = room.players.find(p => p.id === playerId);
   const isHost = currentPlayer?.isHost || false;
   const hasVotedReady = room.votesReadyPlayers?.includes(playerId) || false;
@@ -121,7 +122,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         <p>اضغط "نبي نصوت" لما تحس إنك جاهز</p>
       </div>
 
-      <Card className="max-w-md mx-auto mb-8">
+      <Card className={`max-w-md mx-auto mb-8 ${room.settings?.allowOddOneOutReveal && isOddOneOut ? 'border-destructive border-2 bg-destructive/5' : ''}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">كلمتك</h3>
@@ -141,7 +142,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
           {playerWord ? (
             <>
               {showWord ? (
-                <p className="text-4xl font-bold text-center" data-testid="text-player-word">
+                <p className={`text-4xl font-bold text-center ${room.settings?.allowOddOneOutReveal && isOddOneOut ? 'text-destructive' : ''}`} data-testid="text-player-word">
                   {playerWord}
                 </p>
               ) : (
@@ -447,6 +448,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
               onSendMessage({ type: 'leave_room' });
               localStorage.removeItem('playerId');
               localStorage.removeItem('roomCode');
+              setLocation('/');
             }}
             data-testid="button-leave-game"
           >

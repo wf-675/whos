@@ -73,6 +73,7 @@ export const roomSchema = z.object({
     enableTimer: z.boolean().default(true),
     discussionTimeMinutes: z.number().default(3).min(1).max(10),
     category: z.string().optional(),
+    excludedCategories: z.array(z.string()).default([]),
   }).optional(),
 });
 
@@ -111,6 +112,7 @@ export const updateSettingsSchema = z.object({
   enableTimer: z.boolean().optional(),
   discussionTimeMinutes: z.number().min(1).max(10).optional(),
   category: z.string().optional(),
+  excludedCategories: z.array(z.string()).optional(),
 });
 
 export type WSMessage =

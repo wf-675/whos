@@ -57,15 +57,52 @@ export class MemStorage implements IStorage {
     return code;
   }
 
-  private getRandomWordPair(usedWords: string[] = []): WordPair {
+  private getRandomWordPair(usedWords: string[] = [], excludedCategories: string[] = []): WordPair {
+    let wordPair: WordPair;
+    let attempts = 0;
+    const packFiles = ['animals', 'food', 'countries', 'sports', 'professions', 'players'];
+    
+    do {
+      let availablePacks = this.wordPacks;
+      if (excludedCategories.length > 0) {
+        // Filter out excluded categories
+        availablePacks = this.wordPacks.filter((_, index) => {
+          const categoryName = packFiles[index];
+          return !excludedCategories.includes(categoryName);
+        });
+      }
+      
+      if (availablePacks.length === 0) {
+        // If all categories are excluded, use all packs
+        availablePacks = this.wordPacks;
+      }
+      
+      const packIndex = Math.floor(Math.random() * availablePacks.length);
+      const pack = availablePacks[packIndex];
+      const pairIndex = Math.floor(Math.random() * pack.length);
+      wordPair = pack[pairIndex];
+      attempts++;
+    } while (usedWords.includes(wordPair.normal) && attempts < 100);
+    
+    return wordPair;
+  }
+
+  private getRandomWordPairFromCategory(category: string, usedWords: string[] = []): WordPair {
+    const packFiles = ['animals', 'food', 'countries', 'sports', 'professions', 'players'];
+    const categoryIndex = packFiles.indexOf(category);
+    
+    if (categoryIndex === -1 || !this.wordPacks[categoryIndex]) {
+      console.warn(`Category '${category}' not found. Falling back to random.`);
+      return this.getRandomWordPair(usedWords);
+    }
+
+    const categoryPack = this.wordPacks[categoryIndex];
     let wordPair: WordPair;
     let attempts = 0;
     
     do {
-      const packIndex = Math.floor(Math.random() * this.wordPacks.length);
-      const pack = this.wordPacks[packIndex];
-      const pairIndex = Math.floor(Math.random() * pack.length);
-      wordPair = pack[pairIndex];
+      const pairIndex = Math.floor(Math.random() * categoryPack.length);
+      wordPair = categoryPack[pairIndex];
       attempts++;
     } while (usedWords.includes(wordPair.normal) && attempts < 100);
     
@@ -101,6 +138,7 @@ export class MemStorage implements IStorage {
         allowOddOneOutReveal: false,
         enableTimer: true,
         discussionTimeMinutes: 3,
+        excludedCategories: [],
       },
     };
 
@@ -152,9 +190,10 @@ export class MemStorage implements IStorage {
 
     // Use category from settings if specified
     const category = room.settings?.category;
+    const excludedCategories = room.settings?.excludedCategories || [];
     const wordPair = category && category !== "random" 
       ? this.getRandomWordPairFromCategory(category, room.usedWords || [])
-      : this.getRandomWordPair(room.usedWords || []);
+      : this.getRandomWordPair(room.usedWords || [], excludedCategories);
     room.currentWord = wordPair;
     
     // Add to used words
@@ -278,9 +317,10 @@ export class MemStorage implements IStorage {
 
     // Use category from settings if specified
     const category = room.settings?.category;
+    const excludedCategories = room.settings?.excludedCategories || [];
     const wordPair = category && category !== "random" 
       ? this.getRandomWordPairFromCategory(category, room.usedWords || [])
-      : this.getRandomWordPair(room.usedWords || []);
+      : this.getRandomWordPair(room.usedWords || [], excludedCategories);
     room.currentWord = wordPair;
 
     // Add to used words
@@ -354,7 +394,7 @@ export class MemStorage implements IStorage {
     this.rooms.delete(code);
   }
 
-  updateSettings(roomCode: string, settings: { allowOddOneOutReveal?: boolean; enableTimer?: boolean; discussionTimeMinutes?: number; category?: string }): Room | undefined {
+  updateSettings(roomCode: string, settings: { allowOddOneOutReveal?: boolean; enableTimer?: boolean; discussionTimeMinutes?: number; category?: string; excludedCategories?: string[] }): Room | undefined {
     const room = this.rooms.get(roomCode);
     if (!room) return undefined;
 
@@ -363,6 +403,7 @@ export class MemStorage implements IStorage {
         allowOddOneOutReveal: false,
         enableTimer: true,
         discussionTimeMinutes: 3,
+        excludedCategories: [],
       };
     }
 
@@ -374,6 +415,12 @@ export class MemStorage implements IStorage {
     }
     if (settings.category !== undefined) {
       room.settings.category = settings.category || undefined;
+    }
+    if (settings.excludedCategories !== undefined) {
+      if (!room.settings.excludedCategories) {
+        room.settings.excludedCategories = [];
+      }
+      room.settings.excludedCategories = settings.excludedCategories;
     }
 
     return room;

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlayerCard } from "@/components/PlayerCard";
 import { Copy, Play, Home, X } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
 import { GameSettings } from "@/components/GameSettings";
@@ -18,6 +18,7 @@ interface LobbyPageProps {
 
 export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPageProps) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const currentPlayer = room.players.find(p => p.id === playerId);
   const isHost = currentPlayer?.isHost || false;
   const canStart = room.players.length >= 3;
@@ -70,6 +71,7 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
                   onSendMessage({ type: 'leave_room' });
                   localStorage.removeItem('playerId');
                   localStorage.removeItem('roomCode');
+                  setLocation('/');
                 }}
                 className="flex items-center gap-2"
               >

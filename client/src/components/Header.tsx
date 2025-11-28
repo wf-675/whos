@@ -50,7 +50,7 @@ export function Header() {
 
           <div className="flex items-center gap-2">
             <Link href="/">
-              <Button variant={location === "/" ? "default" : "ghost"} size="sm" className="hidden sm:flex">
+              <Button variant={location === "/" && (!room || !playerId) ? "default" : "ghost"} size="sm" className="hidden sm:flex">
                 <Home className="w-4 h-4 ml-2" />
                 الرئيسية
               </Button>

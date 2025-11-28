@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Settings, X } from "lucide-react";
 import {
   Dialog,
@@ -29,6 +30,7 @@ export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps)
   const [enableTimer, setEnableTimer] = useState(room.settings?.enableTimer ?? true);
   const [discussionTime, setDiscussionTime] = useState(room.settings?.discussionTimeMinutes || 3);
   const [category, setCategory] = useState(room.settings?.category || "random");
+  const [excludedCategories, setExcludedCategories] = useState<string[]>(room.settings?.excludedCategories || []);
 
   // Update state when room settings change
   useEffect(() => {
@@ -37,6 +39,7 @@ export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps)
       setEnableTimer(room.settings.enableTimer ?? true);
       setDiscussionTime(room.settings.discussionTimeMinutes || 3);
       setCategory(room.settings.category || "random");
+      setExcludedCategories(room.settings.excludedCategories || []);
     }
   }, [room.settings]);
 
@@ -50,9 +53,18 @@ export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps)
         enableTimer,
         discussionTimeMinutes: discussionTime,
         category: category === "random" ? undefined : category,
+        excludedCategories: category === "random" ? excludedCategories : [],
       }
     });
     setOpen(false);
+  };
+
+  const toggleExcludedCategory = (cat: string) => {
+    if (excludedCategories.includes(cat)) {
+      setExcludedCategories(excludedCategories.filter(c => c !== cat));
+    } else {
+      setExcludedCategories([...excludedCategories, cat]);
+    }
   };
 
   return (
@@ -137,6 +149,42 @@ export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps)
               اختر كاتقوري معين أو اتركه عشوائي
             </p>
           </div>
+
+          {category === "random" && (
+            <div className="space-y-2">
+              <Label>استثناء كاتقوريات من العشوائي</Label>
+              <div className="space-y-2 border rounded-lg p-3">
+                {['animals', 'food', 'countries', 'sports', 'professions', 'players'].map((cat) => {
+                  const catNames: Record<string, string> = {
+                    animals: 'حيوانات',
+                    food: 'أكل',
+                    countries: 'دول',
+                    sports: 'رياضة',
+                    professions: 'مهن',
+                    players: 'لاعبين',
+                  };
+                  return (
+                    <div key={cat} className="flex items-center space-x-2 space-x-reverse">
+                      <Checkbox
+                        id={`exclude-${cat}`}
+                        checked={excludedCategories.includes(cat)}
+                        onCheckedChange={() => toggleExcludedCategory(cat)}
+                      />
+                      <label
+                        htmlFor={`exclude-${cat}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {catNames[cat]}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                اختر الكاتقوريات التي تريد استثناءها من الاختيار العشوائي
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => setOpen(false)}>

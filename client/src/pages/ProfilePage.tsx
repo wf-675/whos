@@ -8,12 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Save, User, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
+import { useLocation } from "wouter";
 
 export default function ProfilePage() {
   const [playerName, setPlayerName] = useState("");
   const [totalPoints, setTotalPoints] = useState(0);
   const [gamesPlayed, setGamesPlayed] = useState(0);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     const saved = localStorage.getItem('playerName');
@@ -47,6 +49,11 @@ export default function ProfilePage() {
       title: "تم الحفظ!",
       description: "تم تحديث اسمك بنجاح",
     });
+    // Redirect to home if coming from first-time setup
+    if (!localStorage.getItem('hasSetNameBefore')) {
+      localStorage.setItem('hasSetNameBefore', 'true');
+      setLocation('/');
+    }
   };
 
   const initials = playerName.slice(0, 2).toUpperCase() || "??";

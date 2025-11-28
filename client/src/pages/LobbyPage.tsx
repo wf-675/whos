@@ -59,11 +59,11 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
       <Header />
 
       {/* Main Content */}
-      <div className="p-4">
-        <div className="max-w-4xl mx-auto py-8">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">اجمع الشلة</h2>
+      <div className="p-3 sm:p-4">
+        <div className="max-w-4xl mx-auto py-4 sm:py-8">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-xl sm:text-2xl font-bold">اجمع الشلة</h2>
               <Button
                 variant="outline"
                 size="sm"
@@ -73,10 +73,10 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
                   localStorage.removeItem('roomCode');
                   setLocation('/');
                 }}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
               >
-                <Home className="w-4 h-4" />
-                خروج
+                <Home className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">خروج</span>
               </Button>
             </div>
             
@@ -85,9 +85,9 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
                 <p className="text-sm text-muted-foreground">كود الغرفة</p>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-center gap-4">
+                <div className="flex items-center justify-center gap-2 sm:gap-4">
                   <span 
-                    className="text-6xl tracking-widest font-mono font-bold text-primary"
+                    className="text-4xl sm:text-5xl md:text-6xl tracking-widest font-mono font-bold text-primary"
                     data-testid="text-room-code"
                   >
                     {room.code}
@@ -96,10 +96,10 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
                     variant="outline"
                     size="icon"
                     onClick={handleCopyCode}
-                    className="transition-transform hover:scale-110 active:scale-95"
+                    className="transition-transform hover:scale-110 active:scale-95 h-8 w-8 sm:h-10 sm:w-10"
                     data-testid="button-copy-code"
                   >
-                    <Copy className="w-4 h-4" />
+                    <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground mt-4">
@@ -109,15 +109,15 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
             </Card>
           </div>
 
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold">اللاعبين الحاليين</h2>
-              <Badge variant="default" className="text-lg px-4 py-1">
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">اللاعبين الحاليين</h2>
+              <Badge variant="default" className="text-sm sm:text-lg px-3 sm:px-4 py-1">
                 {room.players.length} لاعب
               </Badge>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {room.players.map((player) => (
                 <div key={player.id} className="relative">
                   <PlayerCard player={player} />

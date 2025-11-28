@@ -41,40 +41,42 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex items-center justify-center min-h-[calc(100vh-80px)] p-4">
+      <div className="flex items-center justify-center min-h-[calc(100vh-80px)] p-3 sm:p-4">
       <div className="w-full max-w-2xl">
-        <div className="text-center mb-12">
-          <div className="mb-6">
-            <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-5xl font-bold text-primary">م</span>
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="mb-4 sm:mb-6">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-3 sm:mb-4 rounded-full bg-primary/20 flex items-center justify-center">
+              <span className="text-3xl sm:text-5xl font-bold text-primary">م</span>
             </div>
           </div>
-          <h1 className="text-5xl font-bold mb-4">مين برا السالفة؟</h1>
-          <p className="text-lg text-muted-foreground mb-2">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">مين برا السالفة؟</h1>
+          <p className="text-base sm:text-lg text-muted-foreground mb-2">
             لعبة جماعية ممتعة وفيها ضحك
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             اكتشفوا من الي برا السالفة!
           </p>
         </div>
 
         <Tabs defaultValue="create" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="create" data-testid="tab-create">
-              <Plus className="w-4 h-4 ml-2" />
-              إنشاء غرفة
+          <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6">
+            <TabsTrigger value="create" data-testid="tab-create" className="text-xs sm:text-sm">
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+              <span className="hidden sm:inline">إنشاء غرفة</span>
+              <span className="sm:hidden">إنشاء</span>
             </TabsTrigger>
-            <TabsTrigger value="join" data-testid="tab-join">
-              <Users className="w-4 h-4 ml-2" />
-              الانضمام لغرفة
+            <TabsTrigger value="join" data-testid="tab-join" className="text-xs sm:text-sm">
+              <Users className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+              <span className="hidden sm:inline">الانضمام لغرفة</span>
+              <span className="sm:hidden">انضم</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="create">
             <Card className="border-2">
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-2xl">إنشاء غرفة جديدة</CardTitle>
-                <CardDescription className="text-base mt-2">
+              <CardHeader className="text-center pb-3 sm:pb-4">
+                <CardTitle className="text-xl sm:text-2xl">إنشاء غرفة جديدة</CardTitle>
+                <CardDescription className="text-sm sm:text-base mt-2">
                   ابدأ لعبة جديدة وشارك الكود مع أصدقائك
                 </CardDescription>
               </CardHeader>
@@ -111,9 +113,9 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
 
           <TabsContent value="join">
             <Card className="border-2">
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-2xl">انضم لغرفة</CardTitle>
-                <CardDescription className="text-base mt-2">
+              <CardHeader className="text-center pb-3 sm:pb-4">
+                <CardTitle className="text-xl sm:text-2xl">انضم لغرفة</CardTitle>
+                <CardDescription className="text-sm sm:text-base mt-2">
                   ادخل كود الغرفة للانضمام
                 </CardDescription>
               </CardHeader>
@@ -142,7 +144,7 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
                       onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                       placeholder="ABC123"
                       maxLength={6}
-                      className="text-center text-3xl tracking-widest font-mono h-16 text-lg"
+                      className="text-center text-2xl sm:text-3xl tracking-widest font-mono h-14 sm:h-16 text-base sm:text-lg"
                       data-testid="input-join-code"
                     />
                     <p className="text-xs text-muted-foreground text-center">6 أحرف أو أرقام</p>

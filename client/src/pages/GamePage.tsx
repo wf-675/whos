@@ -77,11 +77,11 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
 
   const renderDiscussionPhase = () => (
     <>
-      <div className="text-center mb-6">
+      <div className="text-center mb-4 sm:mb-6">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <h2 className="text-3xl font-bold">النقاش والحوار</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold">النقاش والحوار</h2>
         </div>
-        <p className="text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           تحدثوا وافتكروا من الي برا السالفة
         </p>
       </div>
@@ -122,18 +122,19 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         <p>اضغط "نبي نصوت" لما تحس إنك جاهز</p>
       </div>
 
-      <Card className={`max-w-md mx-auto mb-8 ${room.settings?.allowOddOneOutReveal && isOddOneOut ? 'border-destructive border-2 bg-destructive/5' : ''}`}>
-        <CardHeader className="pb-3">
+      <Card className={`max-w-md mx-auto mb-6 sm:mb-8 ${room.settings?.allowOddOneOutReveal && isOddOneOut ? 'border-destructive border-2 bg-destructive/5' : ''}`}>
+        <CardHeader className="pb-2 sm:pb-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">كلمتك</h3>
+            <h3 className="text-sm sm:text-base font-semibold">كلمتك</h3>
             {playerWord && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowWord(!showWord)}
                 data-testid="button-toggle-word"
+                className="h-8 w-8"
               >
-                {showWord ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showWord ? <EyeOff className="w-3 h-3 sm:w-4 sm:h-4" /> : <Eye className="w-3 h-3 sm:w-4 sm:h-4" />}
               </Button>
             )}
           </div>
@@ -142,11 +143,11 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
           {playerWord ? (
             <>
               {showWord ? (
-                <p className={`text-4xl font-bold text-center ${room.settings?.allowOddOneOutReveal && isOddOneOut ? 'text-destructive' : ''}`} data-testid="text-player-word">
+                <p className={`text-2xl sm:text-3xl md:text-4xl font-bold text-center ${room.settings?.allowOddOneOutReveal && isOddOneOut ? 'text-destructive' : ''}`} data-testid="text-player-word">
                   {playerWord}
                 </p>
               ) : (
-                <p className="text-4xl font-bold text-center blur-sm select-none">
+                <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-center blur-sm select-none">
                   ••••••
                 </p>
               )}
@@ -173,8 +174,8 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
       </Card>
 
       <div>
-        <h2 className="text-2xl font-semibold mb-4">اللاعبون</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">اللاعبون</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {room.players.map((player) => (
             <div key={player.id} className="relative">
               <PlayerCard player={player} />
@@ -218,15 +219,15 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         )}
       </div>
 
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2">وقت التصويت!</h2>
-        <p className="text-muted-foreground">
+      <div className="text-center mb-6 sm:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-2">وقت التصويت!</h2>
+        <p className="text-sm sm:text-base text-muted-foreground">
           اختر الي برا السالفة عندك
         </p>
       </div>
 
       <div className="max-w-4xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           {room.players.map((player) => {
             // Calculate vote count for this player
             const voteCount = room.players.filter(p => p.votedFor === player.id).length;
@@ -411,10 +412,10 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
       <Header />
       {/* Game Header */}
       <div className="border-b border-border bg-card/30">
-        <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="font-bold text-lg">الجولة {room.roundNumber}</h1>
-            <Badge className="text-sm">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <h1 className="font-bold text-sm sm:text-base md:text-lg">الجولة {room.roundNumber}</h1>
+            <Badge className="text-xs sm:text-sm">
               {room.phase === 'discussion' && 'النقاش'}
               {room.phase === 'voting' && 'التصويت'}
               {room.phase === 'reveal' && 'النتائج'}
@@ -460,8 +461,8 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
       </div>
 
       {/* Main Content */}
-      <div className="p-4">
-        <div className="max-w-6xl mx-auto py-8">
+      <div className="p-3 sm:p-4">
+        <div className="max-w-6xl mx-auto py-4 sm:py-8">
           {room.phase === 'discussion' && renderDiscussionPhase()}
           {room.phase === 'voting' && renderVotingPhase()}
           {room.phase === 'reveal' && renderRevealPhase()}

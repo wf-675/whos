@@ -14,6 +14,9 @@ interface HomePageProps {
 
 export default function HomePage({ onSendMessage }: HomePageProps) {
   const [joinCode, setJoinCode] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
+  const [roomName, setRoomName] = useState("");
+  const [maxPlayers, setMaxPlayers] = useState(10);
   const playerName = localStorage.getItem('playerName') || "";
 
   const handleCreate = (e: React.FormEvent) => {
@@ -23,8 +26,9 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
         type: 'create_room',
         data: { 
           playerName,
-          isPublic: false, // Default to private
-          roomName: undefined
+          isPublic,
+          roomName: roomName.trim() || undefined,
+          maxPlayers: Math.max(3, Math.min(20, maxPlayers))
         }
       });
     }
@@ -101,6 +105,62 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
                       <Link href="/profile" className="text-sm text-destructive hover:underline font-semibold mt-2 inline-block">من الملف الشخصي</Link>
                     </div>
                   )}
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="room-name">اسم الغرفة (اختياري)</Label>
+                      <Input
+                        id="room-name"
+                        value={roomName}
+                        onChange={(e) => setRoomName(e.target.value)}
+                        placeholder="مثلاً: لوبي الأصدقاء"
+                        maxLength={30}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="room-type">نوع الغرفة</Label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center space-x-2 space-x-reverse cursor-pointer">
+                          <input
+                            type="radio"
+                            name="room-type"
+                            checked={!isPublic}
+                            onChange={() => setIsPublic(false)}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-sm">خاص (يحتاج موافقة)</span>
+                        </label>
+                        <label className="flex items-center space-x-2 space-x-reverse cursor-pointer">
+                          <input
+                            type="radio"
+                            name="room-type"
+                            checked={isPublic}
+                            onChange={() => setIsPublic(true)}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-sm">عام (الكل يقدر ينضم)</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="max-players">عدد اللاعبين الأقصى</Label>
+                      <Input
+                        id="max-players"
+                        type="number"
+                        min="3"
+                        max="20"
+                        value={maxPlayers}
+                        onChange={(e) => setMaxPlayers(Math.max(3, Math.min(20, parseInt(e.target.value) || 10)))}
+                        className="w-full"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        الحد الأدنى للبدء: 3 لاعبين
+                      </p>
+                    </div>
+                  </div>
+
                   <Button 
                     type="submit" 
                     className="w-full h-12 text-lg"

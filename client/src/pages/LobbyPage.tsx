@@ -21,7 +21,7 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
   const [, setLocation] = useLocation();
   const currentPlayer = room.players.find(p => p.id === playerId);
   const isHost = currentPlayer?.isHost || false;
-  const canStart = room.players.length >= 3;
+  const canStart = room.players.length >= 3 && room.players.length <= (room.maxPlayers || 10);
 
   const handleCopyCode = async () => {
     try {
@@ -117,7 +117,7 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">اللاعبين الحاليين</h2>
               <Badge variant="default" className="text-sm sm:text-lg px-3 sm:px-4 py-1">
-                {room.players.length} لاعب
+                {room.players.length} / {room.maxPlayers || 10} لاعب
               </Badge>
             </div>
             
@@ -197,7 +197,10 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
               </div>
               {!canStart && (
                 <p className="text-muted-foreground mb-4 text-lg">
-                  محتاج 3 لاعبين على الأقل عشان نبدأ
+                  {room.players.length < 3 
+                    ? "محتاج 3 لاعبين على الأقل عشان نبدأ"
+                    : `الغرفة ممتلئة (${room.maxPlayers || 10} لاعب كحد أقصى)`
+                  }
                 </p>
               )}
               <Button

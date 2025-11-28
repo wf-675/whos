@@ -33,16 +33,11 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    // Show alert if user navigates away during game (but not in lobby, and not if host)
-    const currentPlayer = room?.players.find(p => p.id === playerId);
-    const isHost = currentPlayer?.isHost || false;
+    // Show alert if user navigates away during active game (not in lobby)
+    // Show on any page except the game/lobby pages
+    const isGamePage = location === "/" || location.startsWith("/lobby") || location.startsWith("/game");
     
-    // Only show alert if:
-    // 1. In a room and has playerId
-    // 2. Not in lobby phase
-    // 3. Not the host
-    // 4. On home or info page
-    if (room && playerId && room.phase !== 'lobby' && !isHost && (location === "/" || location === "/info")) {
+    if (room && playerId && room.phase !== 'lobby' && !isGamePage) {
       setShowGameAlert(true);
     } else {
       setShowGameAlert(false);
@@ -88,6 +83,12 @@ export function Header() {
               <Home className="w-4 h-4 ml-2" />
               الرئيسية
             </Button>
+            <Link href="/rooms">
+              <Button variant={location === "/rooms" ? "default" : "ghost"} size="sm">
+                <Users className="w-4 h-4 ml-2" />
+                اللوبيات
+              </Button>
+            </Link>
             <Link href="/info">
               <Button variant={location === "/info" ? "default" : "ghost"} size="sm">
                 <Info className="w-4 h-4 ml-2" />
@@ -211,7 +212,7 @@ export function Header() {
         <div className="bg-primary/10 border-b border-primary/20 px-4 py-2 text-center">
           <p className="text-sm text-primary font-semibold flex items-center justify-center gap-2">
             <span className="text-destructive">!</span>
-            أنت في لعبة نشطة! <button onClick={() => window.history.back()} className="underline hover:no-underline">ارجع للعبة</button>
+            أنت في لعبة نشطة! <button onClick={() => window.location.href = '/'} className="underline hover:no-underline font-bold">ارجع للعبة</button>
           </p>
         </div>
       )}

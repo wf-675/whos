@@ -62,21 +62,37 @@ export default function RoomsPage() {
       return;
     }
 
-    sendMessage({
-      type: 'request_join_room',
-      data: {
-        roomCode,
-        playerName,
-      }
-    });
+    const targetRoom = publicRooms.find(r => r.code === roomCode);
+    if (targetRoom && targetRoom.isPublic) {
+      // Public room - join directly
+      sendMessage({
+        type: 'join_room',
+        data: {
+          roomCode,
+          playerName,
+        }
+      });
+    } else {
+      // Private room - request to join
+      sendMessage({
+        type: 'request_join_room',
+        data: {
+          roomCode,
+          playerName,
+        }
+      });
 
-    toast({
-      title: "تم إرسال الطلب",
-      description: "في انتظار موافقة المضيف...",
-    });
+      toast({
+        title: "تم إرسال الطلب",
+        description: "في انتظار موافقة المضيف...",
+      });
+    }
   };
 
   const filteredRooms = publicRooms.filter(room => {
+    // Only show rooms in lobby phase (hide rooms in game)
+    if (room.phase !== 'lobby') return false;
+    
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -165,10 +181,13 @@ export default function RoomsPage() {
                     <Button
                       onClick={() => handleJoinRoom(room.code)}
                       className="w-full"
-                      disabled={room.players.length >= 8 || (room && playerId && room.players.some(p => p.id === playerId))}
+                      disabled={room.players.length >= room.maxPlayers || (room && playerId && room.players.some(p => p.id === playerId))}
                     >
                       {room && playerId && room.players.some(p => p.id === playerId) ? "أنت في هذا اللوبي" : room.isPublic ? "انضم" : "طلب انضمام"}
                     </Button>
+                    <p className="text-xs text-center text-muted-foreground mt-1">
+                      {room.players.length} / {room.maxPlayers} لاعب
+                    </p>
                   </div>
                 </CardContent>
               </Card>

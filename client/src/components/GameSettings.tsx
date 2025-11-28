@@ -27,7 +27,7 @@ interface GameSettingsProps {
 export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps) {
   const [open, setOpen] = useState(false);
   const [allowReveal, setAllowReveal] = useState(room.settings?.allowOddOneOutReveal || false);
-  const [enableTimer, setEnableTimer] = useState(room.settings?.enableTimer ?? true);
+  const [enableTimer, setEnableTimer] = useState(room.settings?.enableTimer ?? false);
   const [discussionTime, setDiscussionTime] = useState(room.settings?.discussionTimeMinutes || 3);
   const [category, setCategory] = useState(room.settings?.category || "random");
   const [excludedCategories, setExcludedCategories] = useState<string[]>(room.settings?.excludedCategories || []);
@@ -36,7 +36,7 @@ export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps)
   useEffect(() => {
     if (room.settings) {
       setAllowReveal(room.settings.allowOddOneOutReveal || false);
-      setEnableTimer(room.settings.enableTimer ?? true);
+      setEnableTimer(room.settings.enableTimer ?? false);
       setDiscussionTime(room.settings.discussionTimeMinutes || 3);
       setCategory(room.settings.category || "random");
       setExcludedCategories(room.settings.excludedCategories || []);

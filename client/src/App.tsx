@@ -27,16 +27,8 @@ function GameApp() {
     }
   }, [location, setLocation]);
 
-  // Auto-redirect back to game if in room and navigated away (only if in game phase, not lobby)
-  useEffect(() => {
-    if (room && playerId && room.phase !== 'lobby' && (location === '/' || location === '/info' || location === '/rooms')) {
-      // If in game phase, redirect back after a short delay
-      const timer = setTimeout(() => {
-        setLocation('/');
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [room, playerId, location, setLocation]);
+  // Note: We don't auto-redirect anymore. The Header component will show an alert
+  // and the user can manually navigate back using the "ارجع للعبة" button.
 
   if (!isConnected) {
     return (

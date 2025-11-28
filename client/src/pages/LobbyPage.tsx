@@ -141,6 +141,55 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
             </div>
           </div>
 
+          {isHost && room.pendingRequests && room.pendingRequests.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">طلبات الانضمام</h3>
+              <div className="space-y-2">
+                {room.pendingRequests.map((requestPlayerId) => {
+                  const playerName = room.pendingPlayerNames?.[requestPlayerId] || 'لاعب جديد';
+                  return (
+                    <Card key={requestPlayerId} className="p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">طلب انضمام من {playerName}</span>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => {
+                              onSendMessage({
+                                type: 'approve_join_request',
+                                data: {
+                                  targetPlayerId: requestPlayerId,
+                                  playerName: playerName
+                                }
+                              });
+                            }}
+                          >
+                            قبول
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              onSendMessage({
+                                type: 'reject_join_request',
+                                data: {
+                                  targetPlayerId: requestPlayerId
+                                }
+                              });
+                            }}
+                          >
+                            رفض
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {isHost && (
             <div className="text-center space-y-4">
               <div className="flex items-center justify-center gap-3">

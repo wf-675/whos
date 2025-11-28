@@ -15,7 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { User, Settings, LogOut, Home, Info, Menu } from "lucide-react";
+import { User, Settings, LogOut, Home, Info, Menu, Users } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { useWebSocket } from "@/hooks/use-websocket";
@@ -33,8 +33,16 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    // Show alert if user navigates away during game (but not in lobby)
-    if (room && playerId && room.phase !== 'lobby' && (location === "/" || location === "/info")) {
+    // Show alert if user navigates away during game (but not in lobby, and not if host)
+    const currentPlayer = room?.players.find(p => p.id === playerId);
+    const isHost = currentPlayer?.isHost || false;
+    
+    // Only show alert if:
+    // 1. In a room and has playerId
+    // 2. Not in lobby phase
+    // 3. Not the host
+    // 4. On home or info page
+    if (room && playerId && room.phase !== 'lobby' && !isHost && (location === "/" || location === "/info")) {
       setShowGameAlert(true);
     } else {
       setShowGameAlert(false);
@@ -143,6 +151,15 @@ export function Header() {
                     <Home className="w-4 h-4 ml-2" />
                     الرئيسية
                   </Button>
+                  <Link href="/rooms" onClick={() => setMobileMenuOpen(false)}>
+                    <Button 
+                      variant={location === "/rooms" ? "default" : "ghost"} 
+                      className="w-full justify-start"
+                    >
+                      <Users className="w-4 h-4 ml-2" />
+                      اللوبيات
+                    </Button>
+                  </Link>
                   <Link href="/info" onClick={() => setMobileMenuOpen(false)}>
                     <Button 
                       variant={location === "/info" ? "default" : "ghost"} 

@@ -14,6 +14,7 @@ import {
 import { Link, useLocation } from "wouter";
 import { soundManager } from "@/lib/sounds";
 import { Header } from "@/components/Header";
+import { ChatBox } from "@/components/ChatBox";
 import type { Room } from "@shared/schema";
 import type { WSMessage } from "@shared/schema";
 
@@ -32,6 +33,13 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
   const currentPlayer = room.players.find(p => p.id === playerId);
   const isHost = currentPlayer?.isHost || false;
   const hasVotedReady = room.votesReadyPlayers?.includes(playerId) || false;
+
+  const handleChatMessage = (text: string) => {
+    onSendMessage({
+      type: 'send_message',
+      data: { text }
+    });
+  };
 
   // Play sounds when phase changes
   useEffect(() => {
@@ -157,7 +165,7 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground text-center mt-4">
-                  {isOddOneOut ? 'الي برا السالفة معك في الجدول' : 'أنت بالسالفة'}
+                  الي برا السالفة معك في الجدول
                 </p>
               )}
             </>
@@ -169,39 +177,49 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
         </CardContent>
       </Card>
 
-      <div>
-        <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">اللاعبون</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {room.players.map((player) => (
-            <div key={player.id} className="relative">
-              <PlayerCard player={player} />
-              {isHost && !player.isHost && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-2 left-2 h-6 w-6 rounded-full"
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
-                      onClick={() => onSendMessage({ 
-                        type: 'kick_player', 
-                        data: { targetPlayerId: player.id } 
-                      })}
-                      className="text-destructive"
-                    >
-                      <X className="w-4 h-4 ml-2" />
-                      طرد اللاعب
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          ))}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">اللاعبون</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {room.players.map((player) => (
+              <div key={player.id} className="relative">
+                <PlayerCard player={player} />
+                {isHost && !player.isHost && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 left-2 h-6 w-6 rounded-full"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem 
+                        onClick={() => onSendMessage({ 
+                          type: 'kick_player', 
+                          data: { targetPlayerId: player.id } 
+                        })}
+                        className="text-destructive"
+                      >
+                        <X className="w-4 h-4 ml-2" />
+                        طرد اللاعب
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="lg:col-span-1">
+          <ChatBox
+            messages={room.messages || []}
+            currentPlayerId={playerId}
+            onSendMessage={handleChatMessage}
+          />
         </div>
       </div>
     </>

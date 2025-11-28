@@ -4,9 +4,13 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 export interface IStorage {
-  createRoom(hostId: string, hostName: string): Room;
+  createRoom(hostId: string, hostName: string, isPublic?: boolean, roomName?: string): Room;
   getRoom(code: string): Room | undefined;
+  getAllPublicRooms(): Room[];
   addPlayerToRoom(roomCode: string, playerId: string, playerName: string): Room | undefined;
+  requestJoinRoom(roomCode: string, playerId: string, playerName: string): Room | undefined;
+  approveJoinRequest(roomCode: string, hostId: string, targetPlayerId: string, playerName: string): Room | undefined;
+  rejectJoinRequest(roomCode: string, hostId: string, targetPlayerId: string): Room | undefined;
   updatePlayerConnection(roomCode: string, playerId: string, isConnected: boolean): void;
   startGame(roomCode: string): Room | undefined;
   addMessage(roomCode: string, playerId: string, playerName: string, text: string): Room | undefined;
@@ -22,6 +26,7 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private rooms: Map<string, Room>;
   private wordPacks: WordPair[][];
+  private pendingPlayerNames: Map<string, Map<string, string>> = new Map(); // roomCode -> playerId -> playerName
 
   constructor() {
     this.rooms = new Map();
@@ -115,7 +120,7 @@ export class MemStorage implements IStorage {
     return players[randomIndex].id;
   }
 
-  createRoom(hostId: string, hostName: string): Room {
+  createRoom(hostId: string, hostName: string, isPublic: boolean = false, roomName?: string): Room {
     const code = this.generateRoomCode();
     const host: Player = {
       id: hostId,
@@ -134,6 +139,10 @@ export class MemStorage implements IStorage {
       roundNumber: 1,
       votesReadyCount: 0,
       usedWords: [],
+      isPublic,
+      roomName: roomName || undefined,
+      pendingRequests: [],
+      pendingPlayerNames: {},
       settings: {
         allowOddOneOutReveal: false,
         enableTimer: true,
@@ -147,7 +156,39 @@ export class MemStorage implements IStorage {
   }
 
   getRoom(code: string): Room | undefined {
-    return this.rooms.get(code);
+    const room = this.rooms.get(code);
+    if (!room) return undefined;
+    
+    // Sync pendingPlayerNames from internal map to room object
+    if (!room.pendingPlayerNames) {
+      room.pendingPlayerNames = {};
+    }
+    const pendingMap = this.pendingPlayerNames.get(code);
+    if (pendingMap) {
+      pendingMap.forEach((name, playerId) => {
+        room.pendingPlayerNames![playerId] = name;
+      });
+    }
+    
+    return room;
+  }
+
+  getAllPublicRooms(): Room[] {
+    return Array.from(this.rooms.values())
+      .filter(room => room.isPublic && room.phase === 'lobby')
+      .map(room => {
+        // Sync pendingPlayerNames from internal map to room object
+        if (!room.pendingPlayerNames) {
+          room.pendingPlayerNames = {};
+        }
+        const pendingMap = this.pendingPlayerNames.get(room.code);
+        if (pendingMap) {
+          pendingMap.forEach((name, playerId) => {
+            room.pendingPlayerNames![playerId] = name;
+          });
+        }
+        return room;
+      });
   }
 
   addPlayerToRoom(roomCode: string, playerId: string, playerName: string): Room | undefined {
@@ -161,6 +202,18 @@ export class MemStorage implements IStorage {
       return room;
     }
 
+    // Remove from pending requests if exists
+    if (room.pendingRequests) {
+      room.pendingRequests = room.pendingRequests.filter(id => id !== playerId);
+    }
+    // Also remove from pendingPlayerNames
+    if (this.pendingPlayerNames.has(roomCode)) {
+      this.pendingPlayerNames.get(roomCode)!.delete(playerId);
+    }
+    if (room.pendingPlayerNames) {
+      delete room.pendingPlayerNames[playerId];
+    }
+
     // Add new player
     const player: Player = {
       id: playerId,
@@ -171,6 +224,89 @@ export class MemStorage implements IStorage {
     };
 
     room.players.push(player);
+    return room;
+  }
+
+  requestJoinRoom(roomCode: string, playerId: string, playerName: string): Room | undefined {
+    const room = this.rooms.get(roomCode);
+    if (!room || room.phase !== 'lobby') return undefined;
+
+    // If public room, add directly
+    if (room.isPublic) {
+      return this.addPlayerToRoom(roomCode, playerId, playerName);
+    }
+
+    // If private room, add to pending requests
+    if (!room.pendingRequests) {
+      room.pendingRequests = [];
+    }
+    
+    // Check if already requested
+    if (!room.pendingRequests.includes(playerId)) {
+      room.pendingRequests.push(playerId);
+      // Store player name for later
+      if (!this.pendingPlayerNames.has(roomCode)) {
+        this.pendingPlayerNames.set(roomCode, new Map());
+      }
+      this.pendingPlayerNames.get(roomCode)!.set(playerId, playerName);
+      // Also update room object
+      if (!room.pendingPlayerNames) {
+        room.pendingPlayerNames = {};
+      }
+      room.pendingPlayerNames[playerId] = playerName;
+    }
+
+    return room;
+  }
+
+  approveJoinRequest(roomCode: string, hostId: string, targetPlayerId: string, playerName?: string): Room | undefined {
+    const room = this.rooms.get(roomCode);
+    if (!room || room.hostId !== hostId || !room.pendingRequests?.includes(targetPlayerId)) return undefined;
+
+    // Get player name from stored map or room object if not provided
+    const storedName = this.pendingPlayerNames.get(roomCode)?.get(targetPlayerId) || room.pendingPlayerNames?.[targetPlayerId];
+    const finalPlayerName = playerName || storedName || 'لاعب جديد';
+
+    // Remove from pending and add to room
+    room.pendingRequests = room.pendingRequests.filter(id => id !== targetPlayerId);
+    if (this.pendingPlayerNames.has(roomCode)) {
+      this.pendingPlayerNames.get(roomCode)!.delete(targetPlayerId);
+    }
+    // Also update room object
+    if (room.pendingPlayerNames) {
+      delete room.pendingPlayerNames[targetPlayerId];
+    }
+    
+    // Add player to room
+    const player: Player = {
+      id: targetPlayerId,
+      name: finalPlayerName,
+      isHost: false,
+      isConnected: true,
+      points: 0,
+    };
+
+    room.players.push(player);
+    return room;
+  }
+
+  rejectJoinRequest(roomCode: string, hostId: string, targetPlayerId: string): Room | undefined {
+    const room = this.rooms.get(roomCode);
+    if (!room || room.hostId !== hostId) return undefined;
+
+    if (room.pendingRequests) {
+      room.pendingRequests = room.pendingRequests.filter(id => id !== targetPlayerId);
+    }
+    
+    // Remove from stored names
+    if (this.pendingPlayerNames.has(roomCode)) {
+      this.pendingPlayerNames.get(roomCode)!.delete(targetPlayerId);
+    }
+    // Also update room object
+    if (room.pendingPlayerNames) {
+      delete room.pendingPlayerNames[targetPlayerId];
+    }
+
     return room;
   }
 

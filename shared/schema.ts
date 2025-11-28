@@ -68,6 +68,10 @@ export const roomSchema = z.object({
   votesReadyCount: z.number().default(0),
   votesReadyPlayers: z.array(z.string()).default([]),
   usedWords: z.array(z.string()).default([]),
+  isPublic: z.boolean().default(false),
+  roomName: z.string().optional(),
+  pendingRequests: z.array(z.string()).default([]), // Player IDs requesting to join
+  pendingPlayerNames: z.record(z.string(), z.string()).default({}), // Player ID -> Player Name for pending requests
   settings: z.object({
     allowOddOneOutReveal: z.boolean().default(false),
     enableTimer: z.boolean().default(true),
@@ -87,6 +91,8 @@ export const joinRoomSchema = z.object({
 
 export const createRoomSchema = z.object({
   playerName: z.string().min(1).max(20),
+  isPublic: z.boolean().optional(),
+  roomName: z.string().max(30).optional(),
 });
 
 export const sendMessageSchema = z.object({
@@ -118,6 +124,10 @@ export const updateSettingsSchema = z.object({
 export type WSMessage =
   | { type: 'create_room'; data: z.infer<typeof createRoomSchema> }
   | { type: 'join_room'; data: z.infer<typeof joinRoomSchema> }
+  | { type: 'request_join_room'; data: z.infer<typeof joinRoomSchema> }
+  | { type: 'approve_join_request'; data: { targetPlayerId: string; playerName: string } }
+  | { type: 'reject_join_request'; data: { targetPlayerId: string } }
+  | { type: 'get_public_rooms' }
   | { type: 'reconnect'; data: z.infer<typeof reconnectSchema> }
   | { type: 'start_game' }
   | { type: 'send_message'; data: z.infer<typeof sendMessageSchema> }
@@ -134,4 +144,6 @@ export type WSResponse =
   | { type: 'room_created'; roomCode: string; playerId: string }
   | { type: 'room_joined'; playerId: string; roomCode?: string }
   | { type: 'room_state'; room: Room; playerId: string; playerWord: string | null }
+  | { type: 'public_rooms'; rooms: Room[] }
+  | { type: 'join_request_sent' }
   | { type: 'error'; message: string };

@@ -9,6 +9,7 @@ import LobbyPage from "@/pages/LobbyPage";
 import GamePage from "@/pages/GamePage";
 import ProfilePage from "@/pages/ProfilePage";
 import InfoPage from "@/pages/InfoPage";
+import RoomsPage from "@/pages/RoomsPage";
 import { Header } from "@/components/Header";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
@@ -25,6 +26,17 @@ function GameApp() {
       setLocation('/profile');
     }
   }, [location, setLocation]);
+
+  // Auto-redirect back to game if in room and navigated away (only if in game phase, not lobby)
+  useEffect(() => {
+    if (room && playerId && room.phase !== 'lobby' && (location === '/' || location === '/info' || location === '/rooms')) {
+      // If in game phase, redirect back after a short delay
+      const timer = setTimeout(() => {
+        setLocation('/');
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [room, playerId, location, setLocation]);
 
   if (!isConnected) {
     return (
@@ -46,6 +58,10 @@ function GameApp() {
       
       <Route path="/info">
         <InfoPage />
+      </Route>
+      
+      <Route path="/rooms">
+        <RoomsPage />
       </Route>
       
       <Route path="/">

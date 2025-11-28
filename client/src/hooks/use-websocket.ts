@@ -80,6 +80,12 @@ export function useWebSocket(): UseWebSocketResult {
               localStorage.setItem('roomCode', response.room.code);
             }
             break;
+          case 'public_rooms':
+            // Handle public rooms list (will be used in rooms page)
+            break;
+          case 'join_request_sent':
+            // Handle join request sent confirmation
+            break;
           case 'error':
             console.error('WebSocket error:', response.message);
             break;

@@ -21,7 +21,11 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
     if (playerName) {
       onSendMessage({
         type: 'create_room',
-        data: { playerName }
+        data: { 
+          playerName,
+          isPublic: false, // Default to private
+          roomName: undefined
+        }
       });
     }
   };

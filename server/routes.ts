@@ -181,7 +181,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         switch (message.type) {
           case 'create_room': {
             const playerId = randomUUID();
-            const room = storage.createRoom(playerId, message.data.playerName);
+            const isPublic = message.data.isPublic || false;
+            const roomName = message.data.roomName;
+            const room = storage.createRoom(playerId, message.data.playerName, isPublic, roomName);
             
             clientData.playerId = playerId;
             clientData.roomCode = room.code;
@@ -233,6 +235,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ws.send(JSON.stringify(response));
               broadcastRoomState(message.data.roomCode);
             }
+            break;
+          }
+
+          case 'request_join_room': {
+            const room = storage.getRoom(message.data.roomCode);
+            
+            if (!room) {
+              const errorResponse: WSResponse = {
+                type: 'error',
+                message: 'الغرفة غير موجودة',
+              };
+              ws.send(JSON.stringify(errorResponse));
+              break;
+            }
+
+            if (room.phase !== 'lobby') {
+              const errorResponse: WSResponse = {
+                type: 'error',
+                message: 'اللعبة قد بدأت بالفعل',
+              };
+              ws.send(JSON.stringify(errorResponse));
+              break;
+            }
+
+            const playerId = randomUUID();
+            const updatedRoom = storage.requestJoinRoom(message.data.roomCode, playerId, message.data.playerName);
+            
+            if (updatedRoom) {
+              if (room.isPublic) {
+                // Public room - join directly
+                clientData.playerId = playerId;
+                clientData.roomCode = message.data.roomCode;
+
+                const response: WSResponse = {
+                  type: 'room_joined',
+                  playerId,
+                };
+
+                ws.send(JSON.stringify(response));
+                broadcastRoomState(message.data.roomCode);
+              } else {
+                // Private room - send request
+                const response: WSResponse = {
+                  type: 'join_request_sent',
+                };
+                ws.send(JSON.stringify(response));
+                // Notify host
+                broadcastRoomState(message.data.roomCode);
+              }
+            }
+            break;
+          }
+
+          case 'approve_join_request': {
+            if (!clientData.roomCode || !clientData.playerId) break;
+
+            const room = storage.getRoom(clientData.roomCode);
+            if (room && room.hostId === clientData.playerId) {
+              const updatedRoom = storage.approveJoinRequest(
+                clientData.roomCode,
+                clientData.playerId,
+                message.data.targetPlayerId,
+                message.data.playerName
+              );
+              if (updatedRoom) {
+                broadcastRoomState(clientData.roomCode);
+              }
+            }
+            break;
+          }
+
+          case 'reject_join_request': {
+            if (!clientData.roomCode || !clientData.playerId) break;
+
+            const room = storage.getRoom(clientData.roomCode);
+            if (room && room.hostId === clientData.playerId) {
+              const updatedRoom = storage.rejectJoinRequest(
+                clientData.roomCode,
+                clientData.playerId,
+                message.data.targetPlayerId
+              );
+              if (updatedRoom) {
+                broadcastRoomState(clientData.roomCode);
+              }
+            }
+            break;
+          }
+
+          case 'get_public_rooms': {
+            const publicRooms = storage.getAllPublicRooms();
+            const response: WSResponse = {
+              type: 'public_rooms',
+              rooms: publicRooms,
+            };
+            ws.send(JSON.stringify(response));
             break;
           }
 

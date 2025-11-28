@@ -46,15 +46,25 @@ export function GameSettings({ room, isHost, onSendMessage }: GameSettingsProps)
   if (!isHost) return null;
 
   const handleSave = () => {
+    const settingsData: any = {
+      allowOddOneOutReveal: allowReveal,
+      enableTimer,
+      discussionTimeMinutes: discussionTime,
+    };
+    
+    // Only send category if not random
+    if (category !== "random") {
+      settingsData.category = category;
+      settingsData.excludedCategories = [];
+    } else {
+      // For random, send undefined for category and excludedCategories
+      settingsData.category = undefined;
+      settingsData.excludedCategories = excludedCategories;
+    }
+    
     onSendMessage({
       type: 'update_settings',
-      data: {
-        allowOddOneOutReveal: allowReveal,
-        enableTimer,
-        discussionTimeMinutes: discussionTime,
-        category: category === "random" ? undefined : category,
-        excludedCategories: category === "random" ? excludedCategories : [],
-      }
+      data: settingsData
     });
     setOpen(false);
   };

@@ -69,9 +69,13 @@ export default function LobbyPage({ room, playerId, onSendMessage }: LobbyPagePr
                 size="sm"
                 onClick={() => {
                   onSendMessage({ type: 'leave_room' });
+                  // Clear immediately
                   localStorage.removeItem('playerId');
                   localStorage.removeItem('roomCode');
-                  setLocation('/');
+                  // Force navigation
+                  setTimeout(() => {
+                    window.location.href = '/';
+                  }, 100);
                 }}
                 className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
               >

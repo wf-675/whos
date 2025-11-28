@@ -155,13 +155,9 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
                 <p className="text-sm text-destructive text-center mt-4 font-semibold">
                   أنت برا السالفة!
                 </p>
-              ) : !room.settings?.allowOddOneOutReveal && isOddOneOut ? (
-                <p className="text-sm text-muted-foreground text-center mt-4">
-                  الي برا السالفة معك في الجدول
-                </p>
               ) : (
                 <p className="text-sm text-muted-foreground text-center mt-4">
-                  أنت بالسالفة
+                  {isOddOneOut ? 'الي برا السالفة معك في الجدول' : 'أنت بالسالفة'}
                 </p>
               )}
             </>
@@ -447,9 +443,13 @@ export default function GamePage({ room, playerId, playerWord, onSendMessage }: 
             size="sm"
             onClick={() => {
               onSendMessage({ type: 'leave_room' });
+              // Clear immediately
               localStorage.removeItem('playerId');
               localStorage.removeItem('roomCode');
-              setLocation('/');
+              // Force navigation
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 100);
             }}
             data-testid="button-leave-game"
           >

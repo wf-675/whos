@@ -65,9 +65,20 @@ export function useWebSocket(): UseWebSocketResult {
             }
             break;
           case 'room_state':
-            setRoom(response.room);
-            setPlayerId(response.playerId);
-            setPlayerWord(response.playerWord);
+            // If room is null, clear everything (player left)
+            if (!response.room || !response.room.code) {
+              setRoom(null);
+              setPlayerId(null);
+              setPlayerWord(null);
+              localStorage.removeItem('playerId');
+              localStorage.removeItem('roomCode');
+            } else {
+              setRoom(response.room);
+              setPlayerId(response.playerId);
+              setPlayerWord(response.playerWord);
+              // Update localStorage
+              localStorage.setItem('roomCode', response.room.code);
+            }
             break;
           case 'error':
             console.error('WebSocket error:', response.message);
@@ -114,6 +125,14 @@ export function useWebSocket(): UseWebSocketResult {
       console.error('WebSocket is not connected');
     }
   }, []);
+
+  // Expose WebSocket for external use
+  useEffect(() => {
+    (window as any).__ws__ = wsRef.current;
+    return () => {
+      delete (window as any).__ws__;
+    };
+  }, [isConnected]);
 
   const reconnect = useCallback(() => {
     if (wsRef.current) {

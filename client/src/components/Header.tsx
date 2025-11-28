@@ -61,12 +61,25 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-2">
-            <Link href="/">
-              <Button variant={isHomePage ? "default" : "ghost"} size="sm">
-                <Home className="w-4 h-4 ml-2" />
-                الرئيسية
-              </Button>
-            </Link>
+            <Button 
+              variant={isHomePage ? "default" : "ghost"} 
+              size="sm"
+              onClick={() => {
+                if (room && playerId) {
+                  // Leave room first if in a room
+                  const ws = (window as any).__ws__;
+                  if (ws) {
+                    ws.send(JSON.stringify({ type: 'leave_room' }));
+                  }
+                  localStorage.removeItem('playerId');
+                  localStorage.removeItem('roomCode');
+                }
+                window.location.href = '/';
+              }}
+            >
+              <Home className="w-4 h-4 ml-2" />
+              الرئيسية
+            </Button>
             <Link href="/info">
               <Button variant={location === "/info" ? "default" : "ghost"} size="sm">
                 <Info className="w-4 h-4 ml-2" />
@@ -110,15 +123,26 @@ export function Header() {
                   </SheetDescription>
                 </SheetHeader>
                 <div className="mt-6 space-y-2">
-                  <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-                    <Button 
-                      variant={isHomePage ? "default" : "ghost"} 
-                      className="w-full justify-start"
-                    >
-                      <Home className="w-4 h-4 ml-2" />
-                      الرئيسية
-                    </Button>
-                  </Link>
+                  <Button 
+                    variant={isHomePage ? "default" : "ghost"} 
+                    className="w-full justify-start"
+                    onClick={() => {
+                      if (room && playerId) {
+                        // Leave room first if in a room
+                        const ws = (window as any).__ws__;
+                        if (ws) {
+                          ws.send(JSON.stringify({ type: 'leave_room' }));
+                        }
+                        localStorage.removeItem('playerId');
+                        localStorage.removeItem('roomCode');
+                      }
+                      setMobileMenuOpen(false);
+                      window.location.href = '/';
+                    }}
+                  >
+                    <Home className="w-4 h-4 ml-2" />
+                    الرئيسية
+                  </Button>
                   <Link href="/info" onClick={() => setMobileMenuOpen(false)}>
                     <Button 
                       variant={location === "/info" ? "default" : "ghost"} 

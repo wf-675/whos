@@ -72,8 +72,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (room.phase !== 'lobby' && room.currentWord) {
           if (isOddOneOut) {
-            // If odd one out, show odd word if reveal is enabled, otherwise show normal (to hide)
-            playerWord = shouldReveal ? room.currentWord.odd : room.currentWord.normal;
+            // Odd one out always gets the odd word (different word), but only knows their role if reveal is enabled
+            playerWord = room.currentWord.odd;
           } else {
             // Normal players always see normal word
             playerWord = room.currentWord.normal;
@@ -475,6 +475,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Clear client data
             clientData.playerId = null;
             clientData.roomCode = null;
+            
+            // Send confirmation to client that they left
+            const leaveResponse: WSResponse = {
+              type: 'room_state',
+              room: null as any,
+              playerId: '',
+              playerWord: null,
+            };
+            ws.send(JSON.stringify(leaveResponse));
             
             break;
           }

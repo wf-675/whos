@@ -279,11 +279,7 @@ export class MemStorage implements IStorage {
     const player = room.players.find(p => p.id === playerId);
     if (!player || player.votedFor) return undefined;
 
-    // If odd one out knows their role and tries to vote for themselves, prevent it
-    if (room.settings?.allowOddOneOutReveal && playerId === room.oddOneOutId && targetPlayerId === playerId) {
-      return undefined; // Prevent odd one out from voting for themselves if they know their role
-    }
-
+    // Allow odd one out to vote for themselves (they can guess correctly and get points)
     player.votedFor = targetPlayerId;
 
     // Calculate points

@@ -11,6 +11,8 @@ import ProfilePage from "@/pages/ProfilePage";
 import InfoPage from "@/pages/InfoPage";
 import RoomsPage from "@/pages/RoomsPage";
 import GameSelectionPage from "@/pages/GameSelectionPage";
+import MafiaLobbyPage from "@/pages/MafiaLobbyPage";
+import MafiaGamePage from "@/pages/MafiaGamePage";
 import { Header } from "@/components/Header";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
@@ -74,21 +76,19 @@ function GameApp() {
         {!room || !playerId ? (
           <>
             <Header />
-            <div className="min-h-screen bg-background flex items-center justify-center p-4">
-              <div className="text-center">
-                <h1 className="text-3xl font-bold mb-4">لعبة المافيا</h1>
-                <p className="text-muted-foreground mb-4">قريباً...</p>
-                <p className="text-sm text-muted-foreground">لعبة المافيا قيد التطوير</p>
-              </div>
-            </div>
+            <HomePage onSendMessage={sendMessage} gameType="mafia" />
           </>
+        ) : room.gameType === "mafia" ? (
+          room.phase === 'lobby' ? (
+            <MafiaLobbyPage room={room} playerId={playerId} onSendMessage={sendMessage} />
+          ) : (
+            <MafiaGamePage room={room} playerId={playerId} onSendMessage={sendMessage} />
+          )
         ) : (
-          <div className="min-h-screen bg-background flex items-center justify-center p-4">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold mb-4">لعبة المافيا</h1>
-              <p className="text-muted-foreground">قريباً...</p>
-            </div>
-          </div>
+          <>
+            <Header />
+            <HomePage onSendMessage={sendMessage} gameType="mafia" />
+          </>
         )}
       </Route>
       

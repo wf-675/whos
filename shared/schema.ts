@@ -54,7 +54,7 @@ export interface WordPack {
 export const roomSchema = z.object({
   code: z.string().length(6),
   hostId: z.string(),
-  phase: z.enum(['lobby', 'discussion', 'voting', 'reveal']),
+  phase: z.enum(['lobby', 'discussion', 'voting', 'reveal', 'night', 'day', 'game_over']),
   players: z.array(playerSchema),
   messages: z.array(messageSchema),
   currentWord: z.object({

@@ -141,7 +141,9 @@ export class MemStorage implements IStorage {
       usedWords: [],
       isPublic,
       roomName: roomName || undefined,
-      maxPlayers: Math.max(3, Math.min(20, maxPlayers)),
+      maxPlayers: gameType === "mafia" 
+        ? Math.max(6, Math.min(30, maxPlayers))
+        : Math.max(3, Math.min(20, maxPlayers)),
       gameType: gameType || "whos-out",
       pendingRequests: [],
       pendingPlayerNames: {},
@@ -324,7 +326,38 @@ export class MemStorage implements IStorage {
 
   startGame(roomCode: string): Room | undefined {
     const room = this.rooms.get(roomCode);
-    if (!room || room.phase !== 'lobby' || room.players.length < 3) return undefined;
+    if (!room || room.phase !== 'lobby') return undefined;
+
+    // Check minimum players based on game type
+    const minPlayers = room.gameType === "mafia" ? 6 : 3;
+    if (room.players.length < minPlayers) return undefined;
+
+    // Mafia game logic
+    if (room.gameType === "mafia") {
+      const { assignMafiaRoles } = require('./mafia-logic');
+      assignMafiaRoles(room);
+      
+      // Reset players
+      room.players.forEach((player) => {
+        player.votedFor = undefined;
+        (player as any).nightAction = undefined;
+        (player as any).investigationResult = undefined;
+        (player as any).watchResult = undefined;
+      });
+
+      // Start night phase
+      room.phase = 'night' as any;
+      room.roundNumber = 1;
+      room.messages = [];
+      room.votes = {};
+      (room as any).deaths = [];
+      (room as any).nightActions = [];
+      room.timerEndsAt = Date.now() + 60000; // 1 minute for night
+      return room;
+    }
+
+    // Whos-out game logic (original)
+    if (room.players.length < 3) return undefined;
 
     // Use category from settings if specified
     const category = room.settings?.category;

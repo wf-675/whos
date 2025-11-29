@@ -4,7 +4,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 export interface IStorage {
-  createRoom(hostId: string, hostName: string, isPublic?: boolean, roomName?: string, maxPlayers?: number): Room;
+  createRoom(hostId: string, hostName: string, isPublic?: boolean, roomName?: string, maxPlayers?: number, gameType?: string): Room;
   getRoom(code: string): Room | undefined;
   getAllPublicRooms(): Room[];
   addPlayerToRoom(roomCode: string, playerId: string, playerName: string): Room | undefined;
@@ -120,7 +120,7 @@ export class MemStorage implements IStorage {
     return players[randomIndex].id;
   }
 
-  createRoom(hostId: string, hostName: string, isPublic: boolean = false, roomName?: string, maxPlayers: number = 10): Room {
+  createRoom(hostId: string, hostName: string, isPublic: boolean = false, roomName?: string, maxPlayers: number = 10, gameType: string = "whos-out"): Room {
     const code = this.generateRoomCode();
     const host: Player = {
       id: hostId,
@@ -142,6 +142,7 @@ export class MemStorage implements IStorage {
       isPublic,
       roomName: roomName || undefined,
       maxPlayers: Math.max(3, Math.min(20, maxPlayers)),
+      gameType: gameType || "whos-out",
       pendingRequests: [],
       pendingPlayerNames: {},
       settings: {

@@ -37,3 +37,4 @@ export type InsertUser = typeof users.$inferInsert;
 export type GameHistory = typeof gameHistory.$inferSelect;
 
 
+

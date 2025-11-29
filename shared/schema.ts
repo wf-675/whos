@@ -71,6 +71,7 @@ export const roomSchema = z.object({
   isPublic: z.boolean().default(false),
   roomName: z.string().optional(),
   maxPlayers: z.number().default(10).min(3).max(20),
+  gameType: z.string().default("whos-out"),
   pendingRequests: z.array(z.string()).default([]), // Player IDs requesting to join
   pendingPlayerNames: z.record(z.string(), z.string()).default({}), // Player ID -> Player Name for pending requests
   settings: z.object({
@@ -95,6 +96,7 @@ export const createRoomSchema = z.object({
   isPublic: z.boolean().optional(),
   roomName: z.string().max(30).optional(),
   maxPlayers: z.number().min(3).max(20).optional(),
+  gameType: z.string().default("whos-out"),
 });
 
 export const sendMessageSchema = z.object({

@@ -30,3 +30,4 @@ CREATE INDEX IF NOT EXISTS "idx_game_history_user_id" ON "game_history"("user_id
 CREATE INDEX IF NOT EXISTS "idx_game_history_played_at" ON "game_history"("played_at" DESC);
 
 
+

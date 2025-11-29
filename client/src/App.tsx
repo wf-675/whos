@@ -10,6 +10,7 @@ import GamePage from "@/pages/GamePage";
 import ProfilePage from "@/pages/ProfilePage";
 import InfoPage from "@/pages/InfoPage";
 import RoomsPage from "@/pages/RoomsPage";
+import GameSelectionPage from "@/pages/GameSelectionPage";
 import { Header } from "@/components/Header";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
@@ -56,17 +57,44 @@ function GameApp() {
         <RoomsPage />
       </Route>
       
-      <Route path="/">
+      <Route path="/whos-out">
         {!room || !playerId ? (
           <>
             <Header />
-            <HomePage onSendMessage={sendMessage} />
+            <HomePage onSendMessage={sendMessage} gameType="whos-out" />
           </>
         ) : room.phase === 'lobby' ? (
           <LobbyPage room={room} playerId={playerId} onSendMessage={sendMessage} />
         ) : (
           <GamePage room={room} playerId={playerId} playerWord={playerWord} onSendMessage={sendMessage} />
         )}
+      </Route>
+      
+      <Route path="/mafia">
+        {!room || !playerId ? (
+          <>
+            <Header />
+            <div className="min-h-screen bg-background flex items-center justify-center p-4">
+              <div className="text-center">
+                <h1 className="text-3xl font-bold mb-4">لعبة المافيا</h1>
+                <p className="text-muted-foreground mb-4">قريباً...</p>
+                <p className="text-sm text-muted-foreground">لعبة المافيا قيد التطوير</p>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="min-h-screen bg-background flex items-center justify-center p-4">
+            <div className="text-center">
+              <h1 className="text-3xl font-bold mb-4">لعبة المافيا</h1>
+              <p className="text-muted-foreground">قريباً...</p>
+            </div>
+          </div>
+        )}
+      </Route>
+      
+      <Route path="/">
+        <Header />
+        <GameSelectionPage />
       </Route>
     </Switch>
   );

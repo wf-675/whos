@@ -10,9 +10,10 @@ import type { WSMessage } from "@shared/schema";
 
 interface HomePageProps {
   onSendMessage: (message: WSMessage) => void;
+  gameType?: string;
 }
 
-export default function HomePage({ onSendMessage }: HomePageProps) {
+export default function HomePage({ onSendMessage, gameType = "whos-out" }: HomePageProps) {
   const [joinCode, setJoinCode] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [roomName, setRoomName] = useState("");
@@ -28,7 +29,8 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
           playerName,
           isPublic,
           roomName: roomName.trim() || undefined,
-          maxPlayers: Math.max(3, Math.min(20, maxPlayers))
+          maxPlayers: Math.max(3, Math.min(20, maxPlayers)),
+          gameType: gameType
         }
       });
     }
@@ -57,12 +59,18 @@ export default function HomePage({ onSendMessage }: HomePageProps) {
               <span className="text-3xl sm:text-5xl font-bold text-primary">م</span>
             </div>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">مين برا السالفة؟</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
+            {gameType === "whos-out" ? "مين برا السالفة؟" : "المافيا"}
+          </h1>
           <p className="text-base sm:text-lg text-muted-foreground mb-2">
-            لعبة جماعية ممتعة وفيها ضحك
+            {gameType === "whos-out" 
+              ? "لعبة جماعية ممتعة وفيها ضحك"
+              : "لعبة استراتيجية اجتماعية تعتمد على الخداع والتحليل"}
           </p>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            اكتشفوا من الي برا السالفة!
+            {gameType === "whos-out" 
+              ? "اكتشفوا من الي برا السالفة!"
+              : "فريقان متعارضان: المافيا والمدينة"}
           </p>
         </div>
 

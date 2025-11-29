@@ -184,7 +184,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const isPublic = message.data.isPublic || false;
             const roomName = message.data.roomName;
             const maxPlayers = message.data.maxPlayers || 10;
-            const room = storage.createRoom(playerId, message.data.playerName, isPublic, roomName, maxPlayers);
+            const gameType = message.data.gameType || "whos-out";
+            const room = storage.createRoom(playerId, message.data.playerName, isPublic, roomName, maxPlayers, gameType);
             
             clientData.playerId = playerId;
             clientData.roomCode = room.code;

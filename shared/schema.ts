@@ -142,7 +142,10 @@ export type WSMessage =
   | { type: 'leave_room' }
   | { type: 'end_game' }
   | { type: 'return_to_lobby' }
-  | { type: 'update_settings'; data: z.infer<typeof updateSettingsSchema> };
+  | { type: 'update_settings'; data: z.infer<typeof updateSettingsSchema> }
+  | { type: 'mafia_night_action'; data: { actionType: string; targetId: string } }
+  | { type: 'mafia_chat'; data: { text: string } }
+  | { type: 'end_night' };
 
 export type WSResponse =
   | { type: 'room_created'; roomCode: string; playerId: string }

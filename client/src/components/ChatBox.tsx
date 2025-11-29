@@ -7,11 +7,14 @@ import type { Message } from "@shared/schema";
 
 interface ChatBoxProps {
   messages: Message[];
-  currentPlayerId: string;
+  currentPlayerId?: string;
+  playerId?: string;
   onSendMessage: (text: string) => void;
+  disabled?: boolean;
 }
 
-export function ChatBox({ messages, currentPlayerId, onSendMessage }: ChatBoxProps) {
+export function ChatBox({ messages, currentPlayerId, playerId, onSendMessage, disabled = false }: ChatBoxProps) {
+  const actualPlayerId = playerId || currentPlayerId || '';
   const [inputText, setInputText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -43,7 +46,7 @@ export function ChatBox({ messages, currentPlayerId, onSendMessage }: ChatBoxPro
             </p>
           ) : (
             messages.map((msg) => {
-              const isOwn = msg.playerId === currentPlayerId;
+              const isOwn = msg.playerId === actualPlayerId;
               return (
                 <div
                   key={msg.id}
@@ -78,15 +81,16 @@ export function ChatBox({ messages, currentPlayerId, onSendMessage }: ChatBoxPro
           <Input
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="اكتب رسالتك..."
+            placeholder={disabled ? "أنت ميت، لا يمكنك الكتابة" : "اكتب رسالتك..."}
             maxLength={500}
             className="flex-1"
             data-testid="input-message"
+            disabled={disabled}
           />
           <Button 
             type="submit" 
             size="icon"
-            disabled={!inputText.trim()}
+            disabled={!inputText.trim() || disabled}
             data-testid="button-send"
           >
             <Send className="w-4 h-4" />

@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { PlayerCard } from "@/components/PlayerCard";
 import { Timer } from "@/components/Timer";
 import { ChatBox } from "@/components/ChatBox";
+import { NightPhase } from "@/components/NightPhase";
+import { MafiaChat } from "@/components/MafiaChat";
 import { Home } from "lucide-react";
 import { Header } from "@/components/Header";
 import type { Room } from "@shared/schema";
@@ -19,6 +21,12 @@ interface MafiaGamePageProps {
 export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGamePageProps) {
   const currentPlayer = room.players.find(p => p.id === playerId);
   const isAlive = currentPlayer && !(currentPlayer as any).isAlive === false;
+  const role = (currentPlayer as any)?.role;
+  const isMafia = role === 'mafia' || role === 'mafia_boss';
+  const playerName = currentPlayer?.name || '';
+  
+  // Get mafia chat messages (only for mafia players)
+  const mafiaChatMessages = (room as any).mafiaChat || [];
 
   const handleLeave = () => {
     onSendMessage({ type: 'leave_room' });
@@ -60,16 +68,57 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
         </div>
 
         {room.phase === 'night' && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-center">🌙 الليل</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground">
-                {isAlive ? "استخدم قدرتك الليلية..." : "أنت ميت، لا يمكنك التصرف"}
-              </p>
-            </CardContent>
-          </Card>
+          <>
+            <NightPhase
+              room={room}
+              playerId={playerId}
+              onSendMessage={onSendMessage}
+              onActionComplete={() => {}}
+            />
+
+            {isMafia && isAlive && (
+              <div className="mb-6">
+                <MafiaChat
+                  messages={mafiaChatMessages}
+                  playerId={playerId}
+                  playerName={playerName}
+                  onSendMessage={(text) => {
+                    if (isAlive) {
+                      onSendMessage({
+                        type: 'mafia_chat',
+                        data: { text }
+                      } as any);
+                    }
+                  }}
+                />
+              </div>
+            )}
+
+            {currentPlayer?.isHost && (
+              <div className="mb-6 text-center">
+                <Button
+                  onClick={() => onSendMessage({ type: 'end_night' } as any)}
+                  size="lg"
+                  variant="default"
+                >
+                  إنهاء الليل
+                </Button>
+              </div>
+            )}
+
+            {role === 'detective' && (currentPlayer as any)?.investigationResult && (
+              <Card className="mb-6 bg-primary/10 border-primary">
+                <CardHeader>
+                  <CardTitle className="text-center">نتيجة الفحص</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-center font-semibold text-lg">
+                    {(currentPlayer as any).investigationResult}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
 
         {room.phase === 'day' && (
@@ -78,6 +127,14 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
               <CardTitle className="text-center">☀️ النهار</CardTitle>
             </CardHeader>
             <CardContent>
+              {(room as any).nightResult && (
+                <div className="mb-4 p-4 bg-muted rounded-lg">
+                  <p className="text-center font-semibold mb-2">نتائج الليل:</p>
+                  <p className="text-center text-sm">
+                    {(room as any).nightResult}
+                  </p>
+                </div>
+              )}
               <p className="text-center text-muted-foreground">
                 ناقش وابحث عن المافيا...
               </p>
@@ -121,11 +178,16 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
           <div>
             <ChatBox 
               messages={room.messages || []}
-              onSendMessage={(text) => onSendMessage({
-                type: 'send_message',
-                data: { text }
-              })}
-              playerId={playerId}
+              onSendMessage={(text) => {
+                if (isAlive) {
+                  onSendMessage({
+                    type: 'send_message',
+                    data: { text }
+                  });
+                }
+              }}
+              currentPlayerId={playerId}
+              disabled={!isAlive}
             />
           </div>
         </div>

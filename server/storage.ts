@@ -352,7 +352,9 @@ export class MemStorage implements IStorage {
       room.votes = {};
       (room as any).deaths = [];
       (room as any).nightActions = [];
-      room.timerEndsAt = Date.now() + 60000; // 1 minute for night
+      (room as any).mafiaChat = [];
+      (room as any).nightResult = undefined;
+      room.timerEndsAt = Date.now() + 20000; // 20 seconds for night
       return room;
     }
 

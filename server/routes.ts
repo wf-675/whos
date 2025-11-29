@@ -586,6 +586,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             break;
           }
+
+          case 'next_night_role': {
+            if (!clientData.roomCode) break;
+            const room = storage.getRoom(clientData.roomCode);
+            if (!room || room.gameType !== 'mafia' || room.phase !== 'night') break;
+
+            const currentPlayer = room.players.find(p => p.id === clientData.playerId);
+            if (!currentPlayer?.isHost) break;
+
+            const { moveToNextNightRole } = require('./mafia-night-order');
+            const hasNextRole = moveToNextNightRole(room);
+            
+            if (hasNextRole) {
+              room.timerEndsAt = Date.now() + 20000; // 20 seconds for next role
+            } else {
+              // All roles done, process night and move to day
+              const { processNightActions, checkGameOver } = require('./mafia-night');
+              const { deaths, nightResult } = processNightActions(room);
+              (room as any).nightResult = nightResult;
+              (room as any).deaths = deaths;
+
+              // Check for game over
+              const winner = checkGameOver(room);
+              if (winner) {
+                room.phase = 'game_over' as any;
+                (room as any).winner = winner;
+              } else {
+                // Move to day phase
+                room.phase = 'day' as any;
+                room.timerEndsAt = Date.now() + 120000; // 2 minutes for day discussion
+              }
+
+              // Clear night actions
+              (room as any).nightActions = [];
+              (room as any).currentNightRole = null;
+            }
+
+            broadcastRoomState(clientData.roomCode);
+            break;
+          }
+
+          case 'mafia_vote': {
+            if (!clientData.roomCode || !clientData.playerId) break;
+            const room = storage.getRoom(clientData.roomCode);
+            if (!room || room.gameType !== 'mafia' || room.phase !== 'day') break;
+
+            const player = room.players.find(p => p.id === clientData.playerId);
+            if (!player || (player as any).isAlive === false) break;
+
+            // Store vote
+            if (!room.votes) room.votes = {};
+            player.votedFor = (message as any).data.targetPlayerId;
+            room.votes[clientData.playerId] = (message as any).data.targetPlayerId;
+
+            broadcastRoomState(clientData.roomCode);
+            break;
+          }
+
+          case 'end_day': {
+            if (!clientData.roomCode) break;
+            const room = storage.getRoom(clientData.roomCode);
+            if (!room || room.gameType !== 'mafia' || room.phase !== 'day') break;
+
+            const currentPlayer = room.players.find(p => p.id === clientData.playerId);
+            if (!currentPlayer?.isHost) break;
+
+            // Find player with most votes
+            const voteCounts: Record<string, number> = {};
+            room.players.forEach(player => {
+              if (player.votedFor && (player as any).isAlive !== false) {
+                voteCounts[player.votedFor] = (voteCounts[player.votedFor] || 0) + 1;
+              }
+            });
+            
+            const maxVotes = Math.max(...Object.values(voteCounts), 0);
+            const votedOut = Object.keys(voteCounts).find(id => voteCounts[id] === maxVotes);
+            
+            if (votedOut && maxVotes > 0) {
+              const target = room.players.find(p => p.id === votedOut);
+              if (target) {
+                (target as any).isAlive = false;
+                
+                // Check for game over
+                const { checkMafiaWinConditions } = require('./mafia-logic');
+                const winner = checkMafiaWinConditions(room);
+                if (winner) {
+                  room.phase = 'game_over' as any;
+                  (room as any).winner = winner;
+                } else {
+                  // Start next night
+                  const { startNightPhase, moveToNextNightRole } = require('./mafia-night-order');
+                  startNightPhase(room);
+                  moveToNextNightRole(room);
+                  room.phase = 'night' as any;
+                  room.roundNumber = (room.roundNumber || 1) + 1;
+                  room.votes = {};
+                  room.players.forEach(p => p.votedFor = undefined);
+                  (room as any).nightActions = [];
+                  (room as any).mafiaChat = [];
+                  (room as any).nightResult = undefined;
+                  room.timerEndsAt = Date.now() + 20000;
+                }
+              }
+            }
+
+            broadcastRoomState(clientData.roomCode);
+            break;
+          }
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);

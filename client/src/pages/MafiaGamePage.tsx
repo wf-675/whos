@@ -7,6 +7,7 @@ import { Timer } from "@/components/Timer";
 import { ChatBox } from "@/components/ChatBox";
 import { NightPhase } from "@/components/NightPhase";
 import { MafiaChat } from "@/components/MafiaChat";
+import { DayPhase } from "@/components/DayPhase";
 import { Home } from "lucide-react";
 import { Header } from "@/components/Header";
 import type { Room } from "@shared/schema";
@@ -97,11 +98,11 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
             {currentPlayer?.isHost && (
               <div className="mb-6 text-center">
                 <Button
-                  onClick={() => onSendMessage({ type: 'end_night' } as any)}
+                  onClick={() => onSendMessage({ type: 'next_night_role' } as any)}
                   size="lg"
                   variant="default"
                 >
-                  إنهاء الليل
+                  الدور التالي
                 </Button>
               </div>
             )}
@@ -122,24 +123,25 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
         )}
 
         {room.phase === 'day' && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-center">☀️ النهار</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {(room as any).nightResult && (
-                <div className="mb-4 p-4 bg-muted rounded-lg">
-                  <p className="text-center font-semibold mb-2">نتائج الليل:</p>
-                  <p className="text-center text-sm">
-                    {(room as any).nightResult}
-                  </p>
-                </div>
-              )}
-              <p className="text-center text-muted-foreground">
-                ناقش وابحث عن المافيا...
-              </p>
-            </CardContent>
-          </Card>
+          <>
+            <DayPhase
+              room={room}
+              playerId={playerId}
+              onSendMessage={onSendMessage}
+            />
+            
+            {currentPlayer?.isHost && (
+              <div className="mb-6 text-center">
+                <Button
+                  onClick={() => onSendMessage({ type: 'end_day' } as any)}
+                  size="lg"
+                  variant="default"
+                >
+                  طرد وإكمال
+                </Button>
+              </div>
+            )}
+          </>
         )}
 
         {room.phase === 'voting' && (

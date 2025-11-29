@@ -145,7 +145,10 @@ export type WSMessage =
   | { type: 'update_settings'; data: z.infer<typeof updateSettingsSchema> }
   | { type: 'mafia_night_action'; data: { actionType: string; targetId: string } }
   | { type: 'mafia_chat'; data: { text: string } }
-  | { type: 'end_night' };
+  | { type: 'end_night' }
+  | { type: 'next_night_role' }
+  | { type: 'mafia_vote'; data: { targetPlayerId: string } }
+  | { type: 'end_day' };
 
 export type WSResponse =
   | { type: 'room_created'; roomCode: string; playerId: string }

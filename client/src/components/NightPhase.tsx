@@ -20,6 +20,10 @@ export function NightPhase({ room, playerId, onSendMessage, onActionComplete }: 
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
   const [actionSubmitted, setActionSubmitted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(20);
+  
+  const currentNightRole = (room as any).currentNightRole;
+  const isMyTurn = currentNightRole === role || 
+                   (currentNightRole === 'mafia' && (role === 'mafia' || role === 'mafia_boss'));
 
   // Get alive players (excluding self)
   const alivePlayers = room.players.filter(p => {
@@ -63,6 +67,31 @@ export function NightPhase({ room, playerId, onSendMessage, onActionComplete }: 
         <CardContent>
           <p className="text-center text-muted-foreground">
             أنت ميت، لا يمكنك التصرف
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show waiting message if not this role's turn
+  if (!isMyTurn && (role !== 'civilian' && role)) {
+    const currentRoleName = currentNightRole === 'mafia' ? 'المافيا' :
+                           currentNightRole === 'mafia_boss' ? 'زعيم المافيا' :
+                           currentNightRole === 'doctor' ? 'الطبيب' :
+                           currentNightRole === 'detective' ? 'المحقق' :
+                           currentNightRole === 'spy' ? 'الجاسوس' :
+                           currentNightRole === 'watcher' ? 'المراقب' :
+                           currentNightRole === 'bodyguard' ? 'الحارس' :
+                           currentNightRole === 'serial_killer' ? 'القاتل المستقل' : '...';
+    
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-center">🌙 الليل</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-muted-foreground">
+            {currentNightRole ? `دور ${currentRoleName} الآن... انتظر دورك` : 'تنام المدينة...'}
           </p>
         </CardContent>
       </Card>

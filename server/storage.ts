@@ -346,6 +346,10 @@ export class MemStorage implements IStorage {
       });
 
       // Start night phase
+      const { startNightPhase, moveToNextNightRole } = require('./mafia-night-order');
+      startNightPhase(room);
+      const hasNextRole = moveToNextNightRole(room);
+      
       room.phase = 'night' as any;
       room.roundNumber = 1;
       room.messages = [];
@@ -354,7 +358,7 @@ export class MemStorage implements IStorage {
       (room as any).nightActions = [];
       (room as any).mafiaChat = [];
       (room as any).nightResult = undefined;
-      room.timerEndsAt = Date.now() + 20000; // 20 seconds for night
+      room.timerEndsAt = Date.now() + 20000; // 20 seconds per role
       return room;
     }
 

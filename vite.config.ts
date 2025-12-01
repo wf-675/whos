@@ -31,6 +31,13 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
+  css: {
+    postcss: {
+      // Suppress PostCSS warnings about missing 'from' option
+      // This is a known issue with some PostCSS plugins
+      map: false,
+    },
+  },
   server: {
     fs: {
       strict: true,

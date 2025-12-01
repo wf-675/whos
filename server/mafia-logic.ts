@@ -4,7 +4,7 @@ import type { Room, Player } from "@shared/schema";
 // Assign roles to players
 export function assignMafiaRoles(room: Room): void {
   const playerCount = room.players.length;
-  if (playerCount < 6) return;
+  if (playerCount < 4) return;
 
   const roles = getRoleDistribution(playerCount);
   const shuffledRoles = [...roles].sort(() => Math.random() - 0.5);

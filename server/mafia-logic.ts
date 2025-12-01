@@ -2,13 +2,24 @@ import { getRoleDistribution, type MafiaRole, type MafiaTeam } from "@shared/maf
 import type { Room, Player } from "@shared/schema";
 
 // Assign roles to players
+// Fisher-Yates shuffle for true randomness
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export function assignMafiaRoles(room: Room): void {
   const playerCount = room.players.length;
-  if (playerCount < 4) return;
+  if (playerCount < 6) return;
 
   const roles = getRoleDistribution(playerCount);
-  const shuffledRoles = [...roles].sort(() => Math.random() - 0.5);
-  const shuffledPlayers = [...room.players].sort(() => Math.random() - 0.5);
+  // Shuffle roles and players separately for true randomness
+  const shuffledRoles = shuffleArray(roles);
+  const shuffledPlayers = shuffleArray(room.players);
 
   shuffledPlayers.forEach((player, index) => {
     if (index < shuffledRoles.length) {

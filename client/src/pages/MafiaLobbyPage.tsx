@@ -20,7 +20,7 @@ export default function MafiaLobbyPage({ room, playerId, onSendMessage }: MafiaL
   const [, setLocation] = useLocation();
   const currentPlayer = room.players.find(p => p.id === playerId);
   const isHost = currentPlayer?.isHost || false;
-  const canStart = room.players.length >= 4 && room.players.length <= (room.maxPlayers || 30);
+  const canStart = room.players.length >= 6 && room.players.length <= (room.maxPlayers || 30);
 
   const handleCopyCode = async () => {
     try {
@@ -192,8 +192,8 @@ export default function MafiaLobbyPage({ room, playerId, onSendMessage }: MafiaL
             </div>
               {!canStart && (
               <p className="text-muted-foreground mb-4 text-lg">
-                {room.players.length < 4 
-                  ? "محتاج 4 لاعبين على الأقل عشان نبدأ"
+                {room.players.length < 6 
+                  ? "محتاج 6 لاعبين على الأقل عشان نبدأ"
                   : `الغرفة ممتلئة (${room.maxPlayers || 30} لاعب كحد أقصى)`
                 }
               </p>

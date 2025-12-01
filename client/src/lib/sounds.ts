@@ -76,6 +76,46 @@ class SoundManager {
     this.playTone(220, 0.3, 'sawtooth', 0.15);
     setTimeout(() => this.playTone(440, 0.5, 'sine', 0.2), 300);
   }
+
+  // Night phase sound (mysterious, very light)
+  playNight() {
+    this.playTone(150, 0.2, 'sine', 0.02);
+    setTimeout(() => this.playTone(200, 0.3, 'sine', 0.02), 200);
+  }
+
+  // Day phase sound (bright, very light)
+  playDay() {
+    this.playTone(400, 0.15, 'sine', 0.02);
+    setTimeout(() => this.playTone(500, 0.2, 'sine', 0.02), 150);
+  }
+
+  // Kill sound (subtle, dark)
+  playKill() {
+    this.playTone(180, 0.1, 'sawtooth', 0.03);
+  }
+
+  // Protect sound (gentle, light)
+  playProtect() {
+    this.playTone(350, 0.12, 'sine', 0.02);
+    setTimeout(() => this.playTone(440, 0.15, 'sine', 0.02), 120);
+  }
+
+  // Investigate sound (mysterious, very light)
+  playInvestigate() {
+    this.playTone(300, 0.1, 'sine', 0.02);
+    setTimeout(() => this.playTone(400, 0.12, 'sine', 0.02), 100);
+  }
+
+  // Vote sound (subtle)
+  playVote() {
+    this.playTone(450, 0.08, 'square', 0.02);
+  }
+
+  // Death sound (sad, very light)
+  playDeath() {
+    this.playTone(200, 0.2, 'sine', 0.03);
+    setTimeout(() => this.playTone(150, 0.3, 'sine', 0.03), 200);
+  }
 }
 
 export const soundManager = new SoundManager();

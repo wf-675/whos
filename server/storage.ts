@@ -329,7 +329,7 @@ export class MemStorage implements IStorage {
     if (!room || room.phase !== 'lobby') return undefined;
 
     // Check minimum players based on game type
-    const minPlayers = room.gameType === "mafia" ? 4 : 3;
+    const minPlayers = room.gameType === "mafia" ? 6 : 3;
     if (room.players.length < minPlayers) return undefined;
 
     // Mafia game logic

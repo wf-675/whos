@@ -9,8 +9,9 @@ import { NightPhase } from "@/components/NightPhase";
 import { MafiaChat } from "@/components/MafiaChat";
 import { DayPhase } from "@/components/DayPhase";
 import { VotingPhase } from "@/components/VotingPhase";
-import { Home } from "lucide-react";
+import { Home, Moon, Sun, Users, MessageSquare } from "lucide-react";
 import { Header } from "@/components/Header";
+import { soundManager } from "@/lib/sounds";
 import type { Room } from "@shared/schema";
 import type { WSMessage } from "@shared/schema";
 
@@ -26,9 +27,22 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
   const role = (currentPlayer as any)?.role;
   const isMafia = role === 'mafia' || role === 'mafia_boss';
   const playerName = currentPlayer?.name || '';
+  const [previousPhase, setPreviousPhase] = useState(room.phase);
   
   // Get mafia chat messages (only for mafia players)
   const mafiaChatMessages = (room as any).mafiaChat || [];
+
+  // Play sounds on phase change
+  useEffect(() => {
+    if (previousPhase !== room.phase) {
+      if (room.phase === 'night') {
+        soundManager.playNight();
+      } else if (room.phase === 'day') {
+        soundManager.playDay();
+      }
+      setPreviousPhase(room.phase);
+    }
+  }, [room.phase, previousPhase]);
 
   const handleLeave = () => {
     onSendMessage({ type: 'leave_room' });
@@ -39,17 +53,38 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
     }, 500);
   };
 
+  const isNight = room.phase === 'night';
+  const isDay = room.phase === 'day';
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen transition-colors duration-500 ${
+      isNight 
+        ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' 
+        : isDay
+        ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50'
+        : 'bg-background'
+    }`}>
       <Header />
       <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        {/* Phase Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2">المافيا</h1>
-              <Badge variant="outline" className="text-sm">
-                الجولة {room.roundNumber}
-              </Badge>
+            <div className="flex items-center gap-3">
+              {isNight ? (
+                <Moon className="w-8 h-8 text-blue-400 animate-pulse" />
+              ) : isDay ? (
+                <Sun className="w-8 h-8 text-amber-500 animate-pulse" />
+              ) : (
+                <Users className="w-8 h-8 text-primary" />
+              )}
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-foreground">
+                  {isNight ? '🌙 الليل' : isDay ? '☀️ النهار' : 'المافيا'}
+                </h1>
+                <Badge variant="outline" className="text-sm">
+                  الجولة {room.roundNumber}
+                </Badge>
+              </div>
             </div>
             <Button
               variant="outline"
@@ -69,8 +104,9 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
           )}
         </div>
 
+        {/* Night Phase */}
         {room.phase === 'night' && (
-          <>
+          <div className="space-y-6">
             <NightPhase
               room={room}
               playerId={playerId}
@@ -86,6 +122,7 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
                   playerName={playerName}
                   onSendMessage={(text) => {
                     if (isAlive) {
+                      soundManager.playClick();
                       onSendMessage({
                         type: 'mafia_chat',
                         data: { text }
@@ -99,52 +136,48 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
             {currentPlayer?.isHost && (
               <div className="mb-6 text-center">
                 <Button
-                  onClick={() => onSendMessage({ type: 'next_night_role' } as any)}
+                  onClick={() => {
+                    soundManager.playClick();
+                    onSendMessage({ type: 'next_night_role' } as any);
+                  }}
                   size="lg"
                   variant="default"
+                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
                 >
+                  <Moon className="w-5 h-5 ml-2" />
                   الدور التالي
                 </Button>
               </div>
             )}
 
             {role === 'detective' && (currentPlayer as any)?.investigationResult && (
-              <Card className="mb-6 bg-primary/10 border-primary">
+              <Card className="mb-6 bg-blue-950/50 border-blue-500/30 shadow-xl backdrop-blur-sm">
                 <CardHeader>
-                  <CardTitle className="text-center">نتيجة الفحص (الشايب)</CardTitle>
+                  <CardTitle className="text-center text-blue-300 flex items-center justify-center gap-2">
+                    <MessageSquare className="w-5 h-5" />
+                    نتيجة الفحص (الشايب)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-center font-semibold text-lg">
+                  <p className="text-center font-semibold text-lg text-blue-200">
                     {(currentPlayer as any).investigationResult}
                   </p>
                 </CardContent>
               </Card>
             )}
-          </>
+          </div>
         )}
 
+        {/* Day Phase */}
         {room.phase === 'day' && (
-          <>
-            <DayPhase
-              room={room}
-              playerId={playerId}
-              onSendMessage={onSendMessage}
-            />
-            
-            {currentPlayer?.isHost && (
-              <div className="mb-6 text-center">
-                <Button
-                  onClick={() => onSendMessage({ type: 'end_day' } as any)}
-                  size="lg"
-                  variant="default"
-                >
-                  طرد وإكمال
-                </Button>
-              </div>
-            )}
-          </>
+          <DayPhase
+            room={room}
+            playerId={playerId}
+            onSendMessage={onSendMessage}
+          />
         )}
 
+        {/* Voting Phase */}
         {room.phase === 'voting' && (
           <VotingPhase
             room={room}
@@ -153,18 +186,31 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
           />
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Players Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
           <div className="lg:col-span-2">
-            <h2 className="text-xl font-semibold mb-4">اللاعبين</h2>
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              اللاعبين
+            </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
               {room.players.map((player) => {
                 const isDead = (player as any).isAlive === false;
                 return (
-                  <div key={player.id} className={isDead ? "opacity-50" : ""}>
+                  <div 
+                    key={player.id} 
+                    className={`transition-all ${
+                      isDead 
+                        ? "opacity-50 grayscale" 
+                        : isNight 
+                        ? "hover:shadow-lg hover:shadow-blue-500/20" 
+                        : "hover:shadow-lg hover:shadow-amber-500/20"
+                    }`}
+                  >
                     <PlayerCard player={player} />
                     {isDead && (
                       <Badge variant="destructive" className="mt-2 w-full text-center">
-                        ميت
+                        💀 ميت
                       </Badge>
                     )}
                   </div>
@@ -173,11 +219,13 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
             </div>
           </div>
 
+          {/* Chat */}
           <div>
             <ChatBox 
               messages={room.messages || []}
               onSendMessage={(text) => {
                 if (isAlive) {
+                  soundManager.playClick();
                   onSendMessage({
                     type: 'send_message',
                     data: { text }
@@ -193,4 +241,3 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
     </div>
   );
 }
-

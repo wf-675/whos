@@ -93,7 +93,6 @@ function GameApp() {
       </Route>
       
       <Route path="/">
-        <Header />
         <GameSelectionPage />
       </Route>
     </Switch>

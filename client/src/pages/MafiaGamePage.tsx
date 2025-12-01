@@ -8,6 +8,7 @@ import { ChatBox } from "@/components/ChatBox";
 import { NightPhase } from "@/components/NightPhase";
 import { MafiaChat } from "@/components/MafiaChat";
 import { DayPhase } from "@/components/DayPhase";
+import { VotingPhase } from "@/components/VotingPhase";
 import { Home } from "lucide-react";
 import { Header } from "@/components/Header";
 import type { Room } from "@shared/schema";
@@ -110,7 +111,7 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
             {role === 'detective' && (currentPlayer as any)?.investigationResult && (
               <Card className="mb-6 bg-primary/10 border-primary">
                 <CardHeader>
-                  <CardTitle className="text-center">نتيجة الفحص</CardTitle>
+                  <CardTitle className="text-center">نتيجة الفحص (الشايب)</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-center font-semibold text-lg">
@@ -145,16 +146,11 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
         )}
 
         {room.phase === 'voting' && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-center">🗳️ التصويت</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground">
-                صوّت على من تريد طرده...
-              </p>
-            </CardContent>
-          </Card>
+          <VotingPhase
+            room={room}
+            playerId={playerId}
+            onSendMessage={onSendMessage}
+          />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -329,7 +329,7 @@ export class MemStorage implements IStorage {
     if (!room || room.phase !== 'lobby') return undefined;
 
     // Check minimum players based on game type
-    const minPlayers = room.gameType === "mafia" ? 6 : 3;
+    const minPlayers = room.gameType === "mafia" ? 4 : 3;
     if (room.players.length < minPlayers) return undefined;
 
     // Mafia game logic
@@ -358,7 +358,9 @@ export class MemStorage implements IStorage {
       (room as any).nightActions = [];
       (room as any).mafiaChat = [];
       (room as any).nightResult = undefined;
-      room.timerEndsAt = Date.now() + 20000; // 20 seconds per role
+      // First role (mafia) gets 30 seconds, others get 20 seconds
+      const isFirstRole = !(room as any).currentNightRole;
+      room.timerEndsAt = Date.now() + (isFirstRole ? 30000 : 20000);
       return room;
     }
 

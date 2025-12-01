@@ -93,50 +93,32 @@ export const mafiaRoomSchema = z.object({
 
 export type MafiaRoom = z.infer<typeof mafiaRoomSchema>;
 
-// Role distribution based on player count
+// Role distribution based on player count (simplified: civilian, mafia, doctor, detective only)
 export function getRoleDistribution(playerCount: number): MafiaRole[] {
   const roles: MafiaRole[] = [];
   
-  if (playerCount < 6) {
-    // Minimum 6 players
+  if (playerCount < 4) {
+    // Minimum 4 players
     return [];
   }
   
-  // Calculate mafia count (20-25% of total)
-  const mafiaCount = Math.max(2, Math.floor(playerCount * 0.22));
+  // Calculate mafia count based on player count
+  let mafiaCount = 1;
+  if (playerCount >= 6) mafiaCount = 2;
+  if (playerCount >= 9) mafiaCount = 3;
+  if (playerCount >= 12) mafiaCount = 4;
+  if (playerCount >= 15) mafiaCount = 5;
   
-  // Add mafia roles
-  if (playerCount >= 12) {
-    roles.push('mafia_boss');
-    for (let i = 1; i < mafiaCount; i++) {
-      roles.push('mafia');
-    }
-  } else {
-    for (let i = 0; i < mafiaCount; i++) {
-      roles.push('mafia');
-    }
+  // Add mafia
+  for (let i = 0; i < mafiaCount; i++) {
+    roles.push('mafia');
   }
   
-  // Always add detective and doctor
-  roles.push('detective');
+  // Always add doctor (1)
   roles.push('doctor');
   
-  // Add special roles based on player count
-  if (playerCount >= 15) {
-    roles.push('spy');
-  }
-  
-  if (playerCount >= 18) {
-    roles.push('watcher');
-  }
-  
-  if (playerCount >= 20) {
-    roles.push('serial_killer');
-  }
-  
-  if (playerCount >= 25) {
-    roles.push('bodyguard');
-  }
+  // Always add detective (1) - this is "الشايب"
+  roles.push('detective');
   
   // Fill the rest with civilians
   const remaining = playerCount - roles.length;
@@ -146,4 +128,6 @@ export function getRoleDistribution(playerCount: number): MafiaRole[] {
   
   return roles;
 }
+
+
 

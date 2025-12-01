@@ -157,18 +157,18 @@ export default function HomePage({ onSendMessage, gameType = "whos-out" }: HomeP
                       <Input
                         id="max-players"
                         type="number"
-                        min={gameType === "mafia" ? "6" : "3"}
+                        min={gameType === "mafia" ? "4" : "3"}
                         max={gameType === "mafia" ? "30" : "20"}
                         value={maxPlayers}
                         onChange={(e) => {
-                          const min = gameType === "mafia" ? 6 : 3;
+                          const min = gameType === "mafia" ? 4 : 3;
                           const max = gameType === "mafia" ? 30 : 20;
                           setMaxPlayers(Math.max(min, Math.min(max, parseInt(e.target.value) || (gameType === "mafia" ? 10 : 10))));
                         }}
                         className="w-full"
                       />
                       <p className="text-xs text-muted-foreground">
-                        الحد الأدنى للبدء: {gameType === "mafia" ? "6" : "3"} لاعبين
+                        الحد الأدنى للبدء: {gameType === "mafia" ? "4" : "3"} لاعبين
                       </p>
                     </div>
                   </div>

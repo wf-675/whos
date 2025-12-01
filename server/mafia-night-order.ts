@@ -1,15 +1,10 @@
 import type { Room } from "@shared/schema";
 
-// Order of roles waking up at night
+// Order of roles waking up at night (simplified: mafia, doctor, detective only)
 export const NIGHT_ROLE_ORDER: Array<{ role: string; name: string; action: string }> = [
   { role: 'mafia', name: 'المافيا', action: 'kill' },
-  { role: 'mafia_boss', name: 'زعيم المافيا', action: 'kill' },
-  { role: 'serial_killer', name: 'القاتل المستقل', action: 'kill' },
   { role: 'doctor', name: 'الطبيب', action: 'protect' },
-  { role: 'bodyguard', name: 'الحارس', action: 'guard' },
-  { role: 'detective', name: 'المحقق', action: 'investigate' },
-  { role: 'spy', name: 'الجاسوس', action: 'watch' },
-  { role: 'watcher', name: 'المراقب', action: 'watch' },
+  { role: 'detective', name: 'الشايب', action: 'investigate' },
 ];
 
 export function getNextNightRole(room: Room): { role: string; name: string; action: string } | null {
@@ -24,6 +19,10 @@ export function getNextNightRole(room: Room): { role: string; name: string; acti
     const hasRole = room.players.some(p => {
       const playerRole = (p as any).role;
       const isAlive = (p as any).isAlive !== false;
+      // For mafia, check if any mafia is alive
+      if (roleInfo.role === 'mafia') {
+        return (playerRole === 'mafia' || playerRole === 'mafia_boss') && isAlive;
+      }
       return playerRole === roleInfo.role && isAlive;
     });
     
@@ -50,4 +49,6 @@ export function moveToNextNightRole(room: Room): boolean {
   }
   return false; // All roles done
 }
+
+
 

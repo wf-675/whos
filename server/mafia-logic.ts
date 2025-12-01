@@ -46,20 +46,15 @@ export function checkMafiaWinConditions(room: Room): 'mafia' | 'town' | 'indepen
     return team === 'independent';
   });
 
-  // Mafia wins if mafia count >= town count
-  if (aliveMafia.length >= aliveTown.length && aliveMafia.length > 0) {
+  // Mafia wins if mafia count >= non-mafia count
+  const nonMafiaCount = aliveTown.length + aliveIndependent.length;
+  if (aliveMafia.length >= nonMafiaCount && aliveMafia.length > 0) {
     return 'mafia';
   }
 
   // Town wins if all mafia are dead
   if (aliveMafia.length === 0 && aliveTown.length > 0) {
     return 'town';
-  }
-
-  // Serial killer wins if only they remain
-  const serialKiller = alivePlayers.find(p => (p as any).role === 'serial_killer');
-  if (serialKiller && alivePlayers.length === 1) {
-    return 'independent';
   }
 
   return null;
@@ -78,4 +73,6 @@ export function getAliveCountByTeam(room: Room): { mafia: number; town: number; 
     independent: alivePlayers.filter(p => (p as any).team === 'independent').length,
   };
 }
+
+
 

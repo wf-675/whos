@@ -55,25 +55,24 @@ export function processNightActions(room: Room): { deaths: string[]; nightResult
     }
   });
 
-  // Generate night result message
+  // Generate night result message (without mentioning protected player names)
   if (deaths.length > 0) {
     const deathNames = deaths.map(id => {
       const player = room.players.find(p => p.id === id);
       return player?.name || 'لاعب';
     });
-    nightResult = `تم قتل: ${deathNames.join(', ')}`;
+    nightResult = `المافيا قتلت اللاعب: ${deathNames.join(', ')} وخرج من اللعبة`;
   } else if (kills.length > 0 && protections.length > 0) {
-    // Someone was protected
+    // Someone was protected - don't mention names
     const protectedTargets = kills.filter(id => protections.includes(id));
     if (protectedTargets.length > 0) {
-      const protectedNames = protectedTargets.map(id => {
-        const player = room.players.find(p => p.id === id);
-        return player?.name || 'لاعب';
-      });
-      nightResult = `المافيا حاولت قتل ${protectedNames.join(', ')} لكنهم كانوا محميين!`;
+      nightResult = `المافيا حاولت قتل شخص، لكن الطبيب حماه`;
     } else {
       nightResult = "الليلة كانت هادئة، لم يمت أحد.";
     }
+  } else if (kills.length > 0) {
+    // Mafia tried to kill but no one died (shouldn't happen, but handle it)
+    nightResult = "الليلة كانت هادئة، لم يمت أحد.";
   } else {
     nightResult = "الليلة كانت هادئة، لم يمت أحد.";
   }
@@ -86,11 +85,15 @@ export function processNightActions(room: Room): { deaths: string[]; nightResult
       const targetName = target.name;
       const detective = room.players.find(p => p.id === inv.playerId);
       if (detective) {
-        // Set investigation result
+        // Set investigation result - show actual role (without name)
         if (targetRole === 'mafia' || targetRole === 'mafia_boss') {
-          (detective as any).investigationResult = `${targetName} هو مافيا`;
+          (detective as any).investigationResult = `مافيا`;
+        } else if (targetRole === 'doctor') {
+          (detective as any).investigationResult = `طبيب`;
+        } else if (targetRole === 'detective') {
+          (detective as any).investigationResult = `شايب`;
         } else {
-          (detective as any).investigationResult = `${targetName} ليس مافيا`;
+          (detective as any).investigationResult = `مواطن`;
         }
       }
     }

@@ -31,3 +31,5 @@ CREATE INDEX IF NOT EXISTS "idx_game_history_played_at" ON "game_history"("playe
 
 
 
+
+

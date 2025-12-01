@@ -15,7 +15,10 @@ export function DayPhase({ room, playerId, onSendMessage }: DayPhaseProps) {
   const currentPlayer = room.players.find(p => p.id === playerId);
   const isAlive = currentPlayer && !(currentPlayer as any).isAlive === false;
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
-  const hasVoted = currentPlayer?.votedFor !== undefined;
+  const hasVotedReady = (room as any).votesReadyPlayers?.includes(playerId) || false;
+  const votesReadyCount = (room as any).votesReadyCount || 0;
+  const aliveCount = room.players.filter(p => (p as any).isAlive !== false).length;
+  const majorityNeeded = Math.ceil(aliveCount / 2);
 
   // Get alive players (excluding self)
   const alivePlayers = room.players.filter(p => {
@@ -56,53 +59,36 @@ export function DayPhase({ room, playerId, onSendMessage }: DayPhaseProps) {
         )}
 
         <p className="text-center text-muted-foreground mb-6">
-          {hasVoted ? "تم التصويت ✓" : "صوّت على من تريد طرده"}
+          ناقش وابحث عن المافيا...
         </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
-          {alivePlayers.map((player) => {
-            const voteCount = voteCounts[player.id] || 0;
-            return (
-              <div
-                key={player.id}
-                onClick={() => !hasVoted && isAlive && setSelectedTarget(player.id)}
-                className={`cursor-pointer transition-all ${
-                  selectedTarget === player.id
-                    ? 'ring-2 ring-primary scale-105'
-                    : 'hover:opacity-80'
-                } ${hasVoted || !isAlive ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <PlayerCard player={player} />
-                {voteCount > 0 && (
-                  <Badge variant="destructive" className="mt-2 w-full text-center">
-                    {voteCount} صوت
-                  </Badge>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {!hasVoted && isAlive && (
-          <div className="flex justify-center gap-4">
-            <Button
-              onClick={handleVote}
-              disabled={!selectedTarget}
-              size="lg"
-              className="min-w-[150px]"
-            >
-              تأكيد التصويت
-            </Button>
+        <div className="mb-6 p-4 bg-primary/10 rounded-lg">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold">بدء التصويت</p>
+            <Badge variant="default">
+              {votesReadyCount} / {majorityNeeded}
+            </Badge>
           </div>
-        )}
-
-        {!isAlive && (
-          <p className="text-center text-muted-foreground">
-            أنت ميت، لا يمكنك التصويت
+          <Button
+            onClick={() => {
+              if (!hasVotedReady && isAlive) {
+                onSendMessage({ type: 'start_voting' } as any);
+              }
+            }}
+            disabled={hasVotedReady || !isAlive}
+            className="w-full"
+            variant={hasVotedReady ? "outline" : "default"}
+          >
+            {hasVotedReady ? "✓ طلبت بدء التصويت" : "بدء التصويت"}
+          </Button>
+          <p className="text-xs text-muted-foreground mt-2 text-center">
+            يحتاج أكثر من نصف اللاعبين لبدء التصويت
           </p>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
 }
+
+
 

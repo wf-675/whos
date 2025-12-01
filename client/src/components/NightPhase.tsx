@@ -19,11 +19,23 @@ export function NightPhase({ room, playerId, onSendMessage, onActionComplete }: 
   const isAlive = (currentPlayer as any)?.isAlive !== false;
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
   const [actionSubmitted, setActionSubmitted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(20);
-  
   const currentNightRole = (room as any).currentNightRole;
   const isMyTurn = currentNightRole === role || 
                    (currentNightRole === 'mafia' && (role === 'mafia' || role === 'mafia_boss'));
+  
+  // Get time left based on role (mafia gets 30 seconds, others 20)
+  const roleTime = currentNightRole === 'mafia' ? 30 : 20;
+  const [timeLeft, setTimeLeft] = useState(roleTime);
+  
+  // Update time when role changes
+  useEffect(() => {
+    if (isMyTurn && currentNightRole) {
+      const newTime = currentNightRole === 'mafia' ? 30 : 20;
+      setTimeLeft(newTime);
+      setActionSubmitted(false);
+      setSelectedTarget(null);
+    }
+  }, [currentNightRole, isMyTurn]);
 
   // Get alive players (excluding self)
   const alivePlayers = room.players.filter(p => {
@@ -115,19 +127,15 @@ export function NightPhase({ room, playerId, onSendMessage, onActionComplete }: 
 
   const roleName = role === 'mafia' || role === 'mafia_boss' ? 'مافيا' :
                    role === 'doctor' ? 'طبيب' :
-                   role === 'detective' ? 'محقق' :
-                   role === 'spy' ? 'جاسوس' :
-                   role === 'watcher' ? 'مراقب' :
-                   role === 'bodyguard' ? 'حارس' :
-                   role === 'serial_killer' ? 'قاتل مستقل' : '';
+                   role === 'detective' ? 'شايب' : '';
 
   const actionName = role === 'mafia' || role === 'mafia_boss' ? 'قتل' :
                      role === 'doctor' ? 'حماية' :
-                     role === 'detective' ? 'فحص' :
-                     role === 'spy' ? 'مراقبة' :
-                     role === 'watcher' ? 'مراقبة' :
-                     role === 'bodyguard' ? 'حماية' :
-                     role === 'serial_killer' ? 'قتل' : '';
+                     role === 'detective' ? 'فحص' : '';
+  
+  const actionMessage = role === 'mafia' || role === 'mafia_boss' ? 'حدد اللاعب الذي تريد قتله ثم اضغط تأكيد' :
+                        role === 'doctor' ? 'اختر لاعباً لحمايته (ممكن حماية نفسه)' :
+                        role === 'detective' ? 'اختر لاعباً لتعرف دوره' : '';
 
   return (
     <Card className="mb-6">
@@ -141,7 +149,7 @@ export function NightPhase({ room, playerId, onSendMessage, onActionComplete }: 
       </CardHeader>
       <CardContent>
         <p className="text-center text-muted-foreground mb-6">
-          اختر لاعباً لـ{actionName}
+          {actionMessage || `اختر لاعباً لـ${actionName}`}
         </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 mb-6">

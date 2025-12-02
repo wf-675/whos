@@ -1,10 +1,10 @@
 // PostCSS configuration
-// Note: The warning about missing 'from' option is a known issue with some PostCSS plugins
-// and doesn't affect functionality. Vite handles this internally.
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
 
 export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
+  plugins: [
+    tailwindcss(),
+    autoprefixer(),
+  ],
 }

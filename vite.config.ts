@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import tailwindcss from "tailwindcss";
+import autoprefixer from "autoprefixer";
 
 export default defineConfig({
   plugins: [
@@ -33,8 +35,10 @@ export default defineConfig({
   },
   css: {
     postcss: {
-      // Suppress PostCSS warnings about missing 'from' option
-      // This is a known issue with some PostCSS plugins
+      plugins: [
+        tailwindcss(),
+        autoprefixer(),
+      ],
       map: false,
     },
   },

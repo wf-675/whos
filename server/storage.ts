@@ -358,10 +358,14 @@ export class MemStorage implements IStorage {
       (room as any).nightActions = [];
       (room as any).mafiaChat = [];
       (room as any).nightResult = undefined;
+      
       // First role (mafia) gets 30 seconds, others get 20 seconds
       const firstRole = (room as any).currentNightRole;
       const isFirstRole = firstRole === 'mafia';
-      room.timerEndsAt = Date.now() + (isFirstRole ? 30000 : 20000);
+      const timerDuration = isFirstRole ? 30000 : 20000;
+      room.timerEndsAt = Date.now() + timerDuration;
+      
+      // Set auto-advance timer (will be handled by routes.ts)
       return room;
     }
 

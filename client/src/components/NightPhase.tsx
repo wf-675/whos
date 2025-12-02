@@ -49,13 +49,33 @@ export function NightPhase({ room, playerId, onSendMessage, onActionComplete }: 
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && !actionSubmitted && isMyTurn) {
-      // Auto-submit if time runs out
-      handleSubmit();
+      // Auto-submit if time runs out (with first player if no selection)
+      if (!selectedTarget && alivePlayers.length > 0) {
+        const finalTarget = alivePlayers[0].id;
+        setSelectedTarget(finalTarget);
+        const actionType = role === 'mafia' || role === 'mafia_boss' ? 'kill' : 
+                           role === 'doctor' ? 'protect' : 
+                           role === 'detective' ? 'investigate' : 'watch';
+        onSendMessage({
+          type: 'mafia_night_action',
+          data: {
+            actionType,
+            targetId: finalTarget
+          }
+        } as any);
+        setActionSubmitted(true);
+      } else if (selectedTarget) {
+        handleSubmit();
+      }
     }
-  }, [timeLeft, actionSubmitted, isMyTurn]);
+  }, [timeLeft, actionSubmitted, isMyTurn, selectedTarget, alivePlayers, role, onSendMessage]);
 
   const handleSubmit = () => {
-    if (!selectedTarget || actionSubmitted) return;
+    if (actionSubmitted) return;
+    
+    // If no target selected, auto-select first player
+    const finalTarget = selectedTarget || (alivePlayers.length > 0 ? alivePlayers[0].id : null);
+    if (!finalTarget) return;
 
     const actionType = role === 'mafia' || role === 'mafia_boss' ? 'kill' : 
                        role === 'doctor' ? 'protect' : 
@@ -74,11 +94,12 @@ export function NightPhase({ room, playerId, onSendMessage, onActionComplete }: 
       type: 'mafia_night_action',
       data: {
         actionType,
-        targetId: selectedTarget
+        targetId: finalTarget
       }
     } as any);
 
     setActionSubmitted(true);
+    setSelectedTarget(finalTarget);
     onActionComplete();
   };
 
@@ -100,12 +121,21 @@ export function NightPhase({ room, playerId, onSendMessage, onActionComplete }: 
     );
   }
 
+  // Get player's role name
+  const getPlayerRoleName = (playerRole: string) => {
+    if (playerRole === 'mafia' || playerRole === 'mafia_boss') return 'مافيا';
+    if (playerRole === 'doctor') return 'طبيب';
+    if (playerRole === 'detective') return 'شايب';
+    if (playerRole === 'civilian') return 'مواطن';
+    return 'لاعب';
+  };
+
   // Show waiting message if not this role's turn
   if (!isMyTurn && (role !== 'civilian' && role)) {
     const currentRoleName = currentNightRole === 'mafia' ? 'المافيا' :
                            currentNightRole === 'mafia_boss' ? 'زعيم المافيا' :
                            currentNightRole === 'doctor' ? 'الطبيب' :
-                           currentNightRole === 'detective' ? 'المحقق' :
+                           currentNightRole === 'detective' ? 'الشايب' :
                            currentNightRole === 'spy' ? 'الجاسوس' :
                            currentNightRole === 'watcher' ? 'المراقب' :
                            currentNightRole === 'bodyguard' ? 'الحارس' :
@@ -119,9 +149,13 @@ export function NightPhase({ room, playerId, onSendMessage, onActionComplete }: 
             الليل
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          <div className="text-center p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+            <p className="text-slate-200 font-semibold text-lg mb-1">دورك: {getPlayerRoleName(role)}</p>
+            <p className="text-slate-400 text-sm">أنت {getPlayerRoleName(role)}</p>
+          </div>
           <p className="text-center text-slate-400 text-lg">
-            {currentNightRole ? `⏳ دور ${currentRoleName} الآن... انتظر دورك` : '🌙 تنام المدينة...'}
+            {currentNightRole ? `⏳ الآن وقت ${currentRoleName}... انتظر دورك` : '🌙 تنام المدينة...'}
           </p>
         </CardContent>
       </Card>
@@ -137,7 +171,11 @@ export function NightPhase({ room, playerId, onSendMessage, onActionComplete }: 
             الليل
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          <div className="text-center p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+            <p className="text-slate-200 font-semibold text-lg mb-1">دورك: مواطن</p>
+            <p className="text-slate-400 text-sm">أنت مواطن - لا تملك قدرات خاصة</p>
+          </div>
           <p className="text-center text-slate-400 text-lg">
             🌙 تنام المدينة... انتظر حتى يستيقظ الآخرون
           </p>
@@ -174,7 +212,11 @@ export function NightPhase({ room, playerId, onSendMessage, onActionComplete }: 
           <span>الليل - {roleName}</span>
           <span className={roleColor}>{roleIcon}</span>
         </CardTitle>
-        <div className="text-center mt-4">
+        <div className="text-center mt-4 space-y-2">
+          <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+            <p className="text-slate-200 font-semibold text-lg mb-1">دورك: {roleName}</p>
+            <p className="text-slate-400 text-sm">أنت {roleName}</p>
+          </div>
           <Badge variant="destructive" className="text-lg px-4 py-2 bg-red-900/50 border-red-700 text-red-200 flex items-center gap-2 mx-auto w-fit">
             <Clock className="w-4 h-4" />
             {timeLeft} ثانية
@@ -182,7 +224,7 @@ export function NightPhase({ room, playerId, onSendMessage, onActionComplete }: 
         </div>
       </CardHeader>
       <CardContent className="pt-6">
-        <p className="text-center text-slate-300 mb-6 text-lg">
+        <p className="text-center text-slate-300 mb-6 text-lg font-semibold">
           {actionMessage || `اختر لاعباً لـ${actionName}`}
         </p>
 

@@ -129,6 +129,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     roomTimers.set(roomCode, timer);
   };
 
+  // Helper function to process night and move to day
+  const processNightAndMoveToDay = (roomCode: string) => {
+    const room = storage.getRoom(roomCode);
+    if (!room || room.gameType !== 'mafia' || room.phase !== 'night') return;
+
+    const { processNightActions, checkGameOver } = require('./mafia-night');
+    const { deaths, nightResult } = processNightActions(room);
+    (room as any).nightResult = nightResult;
+    (room as any).deaths = deaths;
+
+    // Check for game over
+    const winner = checkGameOver(room);
+    if (winner) {
+      room.phase = 'game_over' as any;
+      (room as any).winner = winner;
+    } else {
+      // Move to day phase
+      room.phase = 'day' as any;
+      room.timerEndsAt = Date.now() + 120000; // 2 minutes for day discussion
+      (room as any).votesReadyCount = 0;
+      (room as any).votesReadyPlayers = [];
+      
+      // Auto-start voting after 2 minutes if not started
+      startPhaseTimer(roomCode, 120000, () => {
+        const currentRoom = storage.getRoom(roomCode);
+        if (currentRoom && currentRoom.phase === 'day' && currentRoom.gameType === 'mafia') {
+          currentRoom.phase = 'voting' as any;
+          (currentRoom as any).currentVoterIndex = 0;
+          currentRoom.votes = {};
+          currentRoom.players.forEach(p => p.votedFor = undefined);
+          currentRoom.timerEndsAt = undefined;
+          broadcastRoomState(roomCode);
+        }
+      });
+    }
+
+    // Clear night actions
+    (room as any).nightActions = [];
+    (room as any).currentNightRole = null;
+    broadcastRoomState(roomCode);
+  };
+
   const startVotingPhase = (roomCode: string) => {
     const room = storage.getRoom(roomCode);
     if (!room) return;
@@ -587,6 +629,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
             break;
           }
 
+          case 'mafia_night_action': {
+            if (!clientData.roomCode || !clientData.playerId) break;
+            const room = storage.getRoom(clientData.roomCode);
+            if (!room || room.gameType !== 'mafia' || room.phase !== 'night') break;
+
+            const player = room.players.find(p => p.id === clientData.playerId);
+            if (!player || (player as any).isAlive === false) break;
+
+            const { actionType, targetId } = (message as any).data;
+            if (!actionType || !targetId) break;
+
+            // Store night action
+            if (!(room as any).nightActions) {
+              (room as any).nightActions = [];
+            }
+
+            // Remove existing action from this player
+            (room as any).nightActions = (room as any).nightActions.filter(
+              (a: any) => a.playerId !== clientData.playerId
+            );
+
+            // Add new action
+            (room as any).nightActions.push({
+              playerId: clientData.playerId,
+              actionType,
+              targetId
+            });
+
+            broadcastRoomState(clientData.roomCode);
+            break;
+          }
+
           case 'next_night_role': {
             if (!clientData.roomCode) break;
             const room = storage.getRoom(clientData.roomCode);
@@ -595,49 +669,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const currentPlayer = room.players.find(p => p.id === clientData.playerId);
             if (!currentPlayer?.isHost) break;
 
+            // Move to next role or process night
             const { moveToNextNightRole } = require('./mafia-night-order');
             const hasNextRole = moveToNextNightRole(room);
             
             if (hasNextRole) {
               // First role (mafia) gets 30 seconds, others get 20 seconds
               const isFirstRole = (room as any).currentNightRole === 'mafia';
-              room.timerEndsAt = Date.now() + (isFirstRole ? 30000 : 20000);
+              const timerDuration = isFirstRole ? 30000 : 20000;
+              room.timerEndsAt = Date.now() + timerDuration;
+              
+              // Auto-advance when timer ends - recursively handle all roles
+              const advanceToNextRole = () => {
+                const currentRoom = storage.getRoom(clientData.roomCode);
+                if (!currentRoom || currentRoom.gameType !== 'mafia' || currentRoom.phase !== 'night') return;
+                
+                const { moveToNextNightRole: moveNext } = require('./mafia-night-order');
+                const hasNext = moveNext(currentRoom);
+                
+                if (hasNext) {
+                  const isFirst = (currentRoom as any).currentNightRole === 'mafia';
+                  const timerDur = isFirst ? 30000 : 20000;
+                  currentRoom.timerEndsAt = Date.now() + timerDur;
+                  broadcastRoomState(clientData.roomCode);
+                  // Set timer for next role
+                  startPhaseTimer(clientData.roomCode, timerDur, advanceToNextRole);
+                } else {
+                  // All roles done
+                  processNightAndMoveToDay(clientData.roomCode);
+                }
+              };
+              
+              startPhaseTimer(clientData.roomCode, timerDuration, advanceToNextRole);
             } else {
               // All roles done, process night and move to day
-              const { processNightActions, checkGameOver } = require('./mafia-night');
-              const { deaths, nightResult } = processNightActions(room);
-              (room as any).nightResult = nightResult;
-              (room as any).deaths = deaths;
-
-              // Check for game over
-              const winner = checkGameOver(room);
-              if (winner) {
-                room.phase = 'game_over' as any;
-                (room as any).winner = winner;
-              } else {
-                // Move to day phase
-                room.phase = 'day' as any;
-                room.timerEndsAt = Date.now() + 120000; // 2 minutes for day discussion
-                (room as any).votesReadyCount = 0;
-                (room as any).votesReadyPlayers = [];
-                
-                // Auto-start voting after 2 minutes if not started
-                startPhaseTimer(clientData.roomCode, 120000, () => {
-                  const currentRoom = storage.getRoom(clientData.roomCode);
-                  if (currentRoom && currentRoom.phase === 'day' && currentRoom.gameType === 'mafia') {
-                    currentRoom.phase = 'voting' as any;
-                    (currentRoom as any).currentVoterIndex = 0;
-                    currentRoom.votes = {};
-                    currentRoom.players.forEach(p => p.votedFor = undefined);
-                    currentRoom.timerEndsAt = undefined;
-                    broadcastRoomState(clientData.roomCode);
-                  }
-                });
-              }
-
-              // Clear night actions
-              (room as any).nightActions = [];
-              (room as any).currentNightRole = null;
+              processNightAndMoveToDay(clientData.roomCode);
             }
 
             broadcastRoomState(clientData.roomCode);
@@ -731,7 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Start next night
                 const { startNightPhase, moveToNextNightRole } = require('./mafia-night-order');
                 startNightPhase(room);
-                moveToNextNightRole(room);
+                const hasNextRole = moveToNextNightRole(room);
                 room.phase = 'night' as any;
                 room.roundNumber = (room.roundNumber || 1) + 1;
                 room.votes = {};
@@ -740,7 +806,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 (room as any).mafiaChat = [];
                 (room as any).nightResult = undefined;
                 (room as any).votingResult = undefined;
-                room.timerEndsAt = Date.now() + 30000;
+                
+                if (hasNextRole) {
+                  const isFirstRole = (room as any).currentNightRole === 'mafia';
+                  const timerDuration = isFirstRole ? 30000 : 20000;
+                  room.timerEndsAt = Date.now() + timerDuration;
+                  // Set auto-advance timer
+                  const advanceToNextRole = () => {
+                    const currentRoom = storage.getRoom(clientData.roomCode);
+                    if (!currentRoom || currentRoom.gameType !== 'mafia' || currentRoom.phase !== 'night') return;
+                    const { moveToNextNightRole: moveNext } = require('./mafia-night-order');
+                    const hasNext = moveNext(currentRoom);
+                    if (hasNext) {
+                      const isFirst = (currentRoom as any).currentNightRole === 'mafia';
+                      const timerDur = isFirst ? 30000 : 20000;
+                      currentRoom.timerEndsAt = Date.now() + timerDur;
+                      broadcastRoomState(clientData.roomCode);
+                      startPhaseTimer(clientData.roomCode, timerDur, advanceToNextRole);
+                    } else {
+                      processNightAndMoveToDay(clientData.roomCode);
+                    }
+                  };
+                  startPhaseTimer(clientData.roomCode, timerDuration, advanceToNextRole);
+                }
               }
             }
 

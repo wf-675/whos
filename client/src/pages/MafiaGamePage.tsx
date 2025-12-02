@@ -107,6 +107,28 @@ export default function MafiaGamePage({ room, playerId, onSendMessage }: MafiaGa
         {/* Night Phase */}
         {room.phase === 'night' && (
           <div className="space-y-6">
+            {/* Show player's role clearly */}
+            {role && (
+              <Card className="mb-4 bg-slate-800/70 border-slate-600 shadow-lg">
+                <CardContent className="pt-4">
+                  <div className="text-center">
+                    <p className="text-slate-200 text-xl font-bold mb-2">
+                      {role === 'mafia' || role === 'mafia_boss' ? '🔴 أنت مافيا' :
+                       role === 'doctor' ? '🛡️ أنت طبيب' :
+                       role === 'detective' ? '🔍 أنت شايب (محقق)' :
+                       '👤 أنت مواطن'}
+                    </p>
+                    <p className="text-slate-400 text-sm">
+                      {role === 'mafia' || role === 'mafia_boss' ? 'دورك: قتل لاعب كل ليلة' :
+                       role === 'doctor' ? 'دورك: حماية لاعب من القتل' :
+                       role === 'detective' ? 'دورك: فحص لاعب لمعرفة دوره' :
+                       'دورك: لا تملك قدرات خاصة - استخدم المنطق والتحليل'}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
             <NightPhase
               room={room}
               playerId={playerId}
